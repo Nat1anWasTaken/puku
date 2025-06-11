@@ -1,6 +1,6 @@
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,4 +14,14 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const analytics = getAnalytics(app);
+export const analytics = isSupported().then((supported) =>
+  supported ? getAnalytics(app) : null
+);
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("User is signed in", user);
+  } else {
+    console.log("User is signed out");
+  }
+});

@@ -1,3 +1,7 @@
+import { Navbar } from "@/components/navbar";
+import { Provider } from "@/components/ui/provider";
+import { Toaster, toaster } from "@/components/ui/toaster";
+import { Box, Flex } from "@chakra-ui/react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -23,11 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Provider>
+          <Flex direction="column" h="vh" w="vw">
+            <Navbar />
+            <Box flex="1">{children}</Box>
+          </Flex>
+          <Toaster />
+        </Provider>
       </body>
     </html>
   );

@@ -4,7 +4,6 @@ frozenLockfile = false
 lockfile = true
 
 [install.scopes]
-
 prefer = "bun"
 
 [cache]
