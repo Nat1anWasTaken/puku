@@ -1,0 +1,16 @@
+# Bun 配置檔案
+[install]
+# 使用 Bun 作為唯一的套件管理器
+cache = true
+frozenLockfile = false
+lockfile = true
+
+[install.scopes]
+# 可以在這裡配置私有 registry
+
+# 套件管理器偏好設定
+prefer = "bun"
+
+# 快取設定
+[cache]
+disable = false
