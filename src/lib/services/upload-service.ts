@@ -3,6 +3,8 @@ import { createArrangement, CreateArrangementData, updateArrangementFilePath } f
 import { mergePDFFiles } from "@/lib/services/pdf-service";
 import { generateArrangementFilePath, uploadFileToStorage } from "@/lib/services/storage-service";
 
+const BUCKET_NAME = "arrangements";
+
 export type UploadArrangementData = CreateArrangementData & {
   files: File[];
 };
@@ -48,7 +50,7 @@ export async function uploadArrangement(data: UploadArrangementData, onProgress?
     });
 
     const filePath = generateArrangementFilePath(arrangementId);
-    await uploadFileToStorage("arrangements", filePath, mergedPdfBytes);
+    await uploadFileToStorage(BUCKET_NAME, filePath, mergedPdfBytes);
 
     onProgress?.({
       step: "updating",
