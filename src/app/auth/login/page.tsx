@@ -1,11 +1,9 @@
-"use client";
-
 import LoginForm from "@/components/login-form";
 import { Flex } from "@chakra-ui/react";
 
 export default function LoginPage() {
   return (
-    <Flex w="full" h="full" justify="center" align="center">
+    <Flex width="full" height="full" justifyContent="center" alignItems="center">
       <LoginForm />
     </Flex>
   );

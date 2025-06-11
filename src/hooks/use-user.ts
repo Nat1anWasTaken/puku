@@ -17,7 +17,7 @@ export function useUser(): UseUserReturn {
   useEffect(() => {
     const getUser = async () => {
       const {
-        data: { user },
+        data: { user }
       } = await supabase.auth.getUser();
       setUser(user);
       setIsLoading(false);
@@ -26,7 +26,7 @@ export function useUser(): UseUserReturn {
     getUser();
 
     const {
-      data: { subscription },
+      data: { subscription }
     } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setIsLoading(false);

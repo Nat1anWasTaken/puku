@@ -1,21 +1,11 @@
 "use client";
 
-import {
-  Avatar,
-  Button,
-  Flex,
-  Heading,
-  HStack,
-  Link,
-  Menu,
-  Portal,
-  Text,
-} from "@chakra-ui/react";
-import { LoaderCircle, UserIcon } from "lucide-react";
-import { toaster } from "./ui/toaster";
-import { useCallback } from "react";
 import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/lib/supabase/client";
+import { Avatar, Button, Flex, Heading, HStack, Link, Menu, Portal, Text } from "@chakra-ui/react";
+import { LoaderCircle, UserIcon } from "lucide-react";
+import { useCallback } from "react";
+import { toaster } from "./ui/toaster";
 
 export function Navbar() {
   const { user, isLoading } = useUser();
@@ -26,12 +16,12 @@ export function Navbar() {
       await supabase.auth.signOut();
       toaster.success({
         title: "登出成功",
-        description: "您已成功登出",
+        description: "您已成功登出"
       });
     } catch (error) {
       toaster.error({
         title: "登出失敗",
-        description: error instanceof Error ? error.message : String(error),
+        description: error instanceof Error ? error.message : String(error)
       });
     }
   }, [supabase]);
@@ -54,10 +44,7 @@ export function Navbar() {
               <Avatar.Root>
                 <Avatar.Fallback className="flex items-center justify-center">
                   <UserIcon className="w-4 h-4" />
-                  <Text className="text-sm">
-                    {user.user_metadata?.full_name?.charAt(0) ||
-                      user.email?.charAt(0)}
-                  </Text>
+                  <Text className="text-sm">{user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0)}</Text>
                 </Avatar.Fallback>
                 <Avatar.Image src={user.user_metadata?.avatar_url ?? ""} />
               </Avatar.Root>
@@ -74,7 +61,7 @@ export function Navbar() {
           </Menu.Root>
         ) : (
           <Button asChild>
-            <Link href="/login">登入</Link>
+            <Link href="/auth/login">登入</Link>
           </Button>
         )}
       </HStack>
