@@ -1,7 +1,7 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { auth } from "@/lib/firebase";
+import { createClient } from "@/lib/supabase/client";
 import {
   Text,
   Button,
@@ -12,17 +12,12 @@ import {
   Input,
   Link,
 } from "@chakra-ui/react";
-import {
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  UserCredential,
-} from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -30,7 +25,7 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleAuthError = useCallback((error: unknown) => {
-    let errorMessage = "Unknown error";
+    let errorMessage = "未知錯誤";
 
     if (error instanceof Error) {
       errorMessage = error.message;
@@ -39,53 +34,71 @@ export default function RegisterForm() {
     }
 
     toaster.error({
-      title: "Registration failed",
+      title: "註冊失敗",
       description: errorMessage,
     });
   }, []);
 
-  const handleAuth = useCallback(
-    async (authFunction: () => Promise<UserCredential>) => {
-      setIsLoading(true);
-      try {
-        await authFunction();
-        router.push("/");
-      } catch (error) {
-        handleAuthError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [router, handleAuthError]
-  );
-
   const handleRegisterWithGoogle = useCallback(async () => {
-    await handleAuth(() => signInWithPopup(auth, new GoogleAuthProvider()));
-  }, [handleAuth]);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+
+      // OAuth 註冊會自動重定向，所以不需要手動導航
+    } catch (error) {
+      handleAuthError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleAuthError, supabase]);
 
   const handleEmailPasswordRegister = useCallback(async () => {
     // 檢查密碼是否匹配
     if (password !== confirmPassword) {
       toaster.error({
-        title: "Registration failed",
-        description: "Passwords do not match",
+        title: "註冊失敗",
+        description: "密碼不匹配",
       });
       return;
     }
 
-    await handleAuth(() =>
-      createUserWithEmailAndPassword(auth, email, password)
-    );
-  }, [handleAuth, email, password, confirmPassword]);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toaster.success({
+        title: "註冊成功",
+        description: "請檢查您的電子郵件以驗證帳戶",
+      });
+
+      router.push("/login");
+    } catch (error) {
+      handleAuthError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [email, password, confirmPassword, router, handleAuthError, supabase]);
 
   return (
     <Card.Root w="md">
       <Card.Header>
         <Center>
-          <Heading>Register</Heading>
+          <Heading>註冊</Heading>
         </Center>
         <Text color="fg.subtle" textAlign="center">
-          Create your account to get started
+          創建您的帳戶以開始使用
         </Text>
       </Card.Header>
       <Card.Body>
@@ -93,9 +106,9 @@ export default function RegisterForm() {
           w="full"
           onClick={handleRegisterWithGoogle}
           loading={isLoading}
-          loadingText="Creating account"
+          loadingText="創建帳戶中"
         >
-          Register with Google
+          使用 Google 註冊
         </Button>
         <VStack
           mt="4"
@@ -107,37 +120,37 @@ export default function RegisterForm() {
           }}
         >
           <Text w="full" textAlign="left" fontWeight="bold">
-            Email
+            電子郵件
           </Text>
           <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Please enter your email"
+            placeholder="請輸入您的電子郵件"
             required
             w="full"
             size="md"
           />
           <Text w="full" textAlign="left" fontWeight="bold">
-            Password
+            密碼
           </Text>
           <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Please enter your password"
+            placeholder="請輸入您的密碼"
             required
             w="full"
             size="md"
           />
           <Text w="full" textAlign="left" fontWeight="bold">
-            Confirm Password
+            確認密碼
           </Text>
           <Input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Please confirm your password"
+            placeholder="請確認您的密碼"
             required
             w="full"
             size="md"
@@ -147,13 +160,13 @@ export default function RegisterForm() {
             type="submit"
             colorScheme="blue"
             loading={isLoading}
-            loadingText="Creating account"
+            loadingText="創建帳戶中"
           >
-            Register
+            註冊
           </Button>
         </VStack>
         <Text textAlign="center" mt="4" color="fg.subtle">
-          Already have an account? <Link href="/login">Login</Link>
+          已經有帳戶？ <Link href="/login">登入</Link>
         </Text>
       </Card.Body>
     </Card.Root>

@@ -1,8 +1,5 @@
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
-import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
 import {
   Avatar,
   Button,
@@ -17,35 +14,38 @@ import {
 import { LoaderCircle, UserIcon } from "lucide-react";
 import { toaster } from "./ui/toaster";
 import { useCallback } from "react";
+import { useUser } from "@/hooks/use-user";
+import { createClient } from "@/lib/supabase/client";
 
 export function Navbar() {
-  const { user, isLoading } = useAuth(auth);
+  const { user, isLoading } = useUser();
+  const supabase = createClient();
 
   const handleSignOut = useCallback(async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
       toaster.success({
-        title: "Logged out",
-        description: "You have been logged out",
+        title: "登出成功",
+        description: "您已成功登出",
       });
     } catch (error) {
       toaster.error({
-        title: "Failed to logout",
-        description: error as string,
+        title: "登出失敗",
+        description: error instanceof Error ? error.message : String(error),
       });
     }
-  }, []);
+  }, [supabase]);
 
   return (
     <Flex direction="row" justify="space-between" align="center" p={4}>
-      {/* Left part */}
+      {/* 左側區塊 */}
       <HStack>
         <Link href="/">
           <Heading fontSize="xl">Puku</Heading>
         </Link>
       </HStack>
 
-      {/* Right part */}
+      {/* 右側區塊 */}
       <HStack>
         {isLoading && <LoaderCircle className="animate-spin" />}
         {user ? (
@@ -54,16 +54,19 @@ export function Navbar() {
               <Avatar.Root>
                 <Avatar.Fallback className="flex items-center justify-center">
                   <UserIcon className="w-4 h-4" />
-                  <Text className="text-sm">{user.displayName?.charAt(0)}</Text>
+                  <Text className="text-sm">
+                    {user.user_metadata?.full_name?.charAt(0) ||
+                      user.email?.charAt(0)}
+                  </Text>
                 </Avatar.Fallback>
-                <Avatar.Image src={user.photoURL ?? ""} />
+                <Avatar.Image src={user.user_metadata?.avatar_url ?? ""} />
               </Avatar.Root>
             </Menu.Trigger>
             <Portal>
               <Menu.Positioner>
                 <Menu.Content>
                   <Menu.Item value="logout" onClick={handleSignOut}>
-                    Logout
+                    登出
                   </Menu.Item>
                 </Menu.Content>
               </Menu.Positioner>
@@ -71,7 +74,7 @@ export function Navbar() {
           </Menu.Root>
         ) : (
           <Button asChild>
-            <Link href="/login">Login</Link>
+            <Link href="/login">登入</Link>
           </Button>
         )}
       </HStack>

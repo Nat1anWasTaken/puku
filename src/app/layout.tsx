@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { Provider } from "@/components/ui/provider";
-import { Toaster, toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster";
 import { Box, Flex } from "@chakra-ui/react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";

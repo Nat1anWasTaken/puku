@@ -1,7 +1,8 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { auth } from "@/lib/firebase";
+import { createClient } from "@/lib/supabase/client";
+
 import {
   Text,
   Button,
@@ -12,24 +13,19 @@ import {
   Input,
   Link,
 } from "@chakra-ui/react";
-import {
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  UserCredential,
-} from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 export default function LoginForm() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleAuthError = useCallback((error: unknown) => {
-    let errorMessage = "Unknown error";
+    let errorMessage = "未知錯誤";
 
     if (error instanceof Error) {
       errorMessage = error.message;
@@ -38,42 +34,57 @@ export default function LoginForm() {
     }
 
     toaster.error({
-      title: "Login failed",
+      title: "登入失敗",
       description: errorMessage,
     });
   }, []);
 
-  const handleAuth = useCallback(
-    async (authFunction: () => Promise<UserCredential>) => {
-      setIsLoading(true);
-      try {
-        await authFunction();
-        router.push("/");
-      } catch (error) {
-        handleAuthError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [router, handleAuthError]
-  );
-
   const handleLoginWithGoogle = useCallback(async () => {
-    await handleAuth(() => signInWithPopup(auth, new GoogleAuthProvider()));
-  }, [handleAuth]);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+
+      // OAuth 登入會自動重定向，所以不需要手動導航
+    } catch (error) {
+      handleAuthError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleAuthError, supabase]);
 
   const handleEmailPasswordLogin = useCallback(async () => {
-    await handleAuth(() => signInWithEmailAndPassword(auth, email, password));
-  }, [handleAuth, email, password]);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      router.push("/");
+    } catch (error) {
+      handleAuthError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [email, password, router, handleAuthError, supabase]);
 
   return (
     <Card.Root w="md">
       <Card.Header>
         <Center>
-          <Heading>Login</Heading>
+          <Heading>登入</Heading>
         </Center>
         <Text color="fg.subtle" textAlign="center">
-          Login to your account to continue
+          登入您的帳戶以繼續
         </Text>
       </Card.Header>
       <Card.Body>
@@ -81,9 +92,9 @@ export default function LoginForm() {
           w="full"
           onClick={handleLoginWithGoogle}
           loading={isLoading}
-          loadingText="Logging in"
+          loadingText="登入中"
         >
-          Login with Google
+          使用 Google 登入
         </Button>
         <VStack
           mt="4"
@@ -95,25 +106,25 @@ export default function LoginForm() {
           }}
         >
           <Text w="full" textAlign="left" fontWeight="bold">
-            Email
+            電子郵件
           </Text>
           <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Please enter your email"
+            placeholder="請輸入您的電子郵件"
             required
             w="full"
             size="md"
           />
           <Text w="full" textAlign="left" fontWeight="bold">
-            Password
+            密碼
           </Text>
           <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Please enter your password"
+            placeholder="請輸入您的密碼"
             required
             w="full"
             size="md"
@@ -123,13 +134,13 @@ export default function LoginForm() {
             type="submit"
             colorScheme="blue"
             loading={isLoading}
-            loadingText="Logging in"
+            loadingText="登入中"
           >
-            Login
+            登入
           </Button>
         </VStack>
         <Text textAlign="center" mt="4" color="fg.subtle">
-          Don&apos;t have an account? <Link href="/register">Register</Link>
+          還沒有帳戶？ <Link href="/register">註冊</Link>
         </Text>
       </Card.Body>
     </Card.Root>
