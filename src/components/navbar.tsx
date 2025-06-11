@@ -29,36 +29,41 @@ export function Navbar() {
   return (
     <Flex direction="row" justify="space-between" align="center" p={4}>
       {/* 左側區塊 */}
-      <HStack>
+      <HStack gap={2}>
         <Link href="/">
           <Heading fontSize="xl">Puku</Heading>
         </Link>
       </HStack>
 
       {/* 右側區塊 */}
-      <HStack>
+      <HStack gap={4}>
         {isLoading && <LoaderCircle className="animate-spin" />}
         {user ? (
-          <Menu.Root>
-            <Menu.Trigger>
-              <Avatar.Root>
-                <Avatar.Fallback className="flex items-center justify-center">
-                  <UserIcon className="w-4 h-4" />
-                  <Text className="text-sm">{user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0)}</Text>
-                </Avatar.Fallback>
-                <Avatar.Image src={user.user_metadata?.avatar_url ?? ""} />
-              </Avatar.Root>
-            </Menu.Trigger>
-            <Portal>
-              <Menu.Positioner>
-                <Menu.Content>
-                  <Menu.Item value="logout" onClick={handleSignOut}>
-                    登出
-                  </Menu.Item>
-                </Menu.Content>
-              </Menu.Positioner>
-            </Portal>
-          </Menu.Root>
+          <>
+            <Button asChild variant="outline">
+              <Link href="/upload">Upload Arrangement</Link>
+            </Button>
+            <Menu.Root>
+              <Menu.Trigger>
+                <Avatar.Root>
+                  <Avatar.Fallback className="flex items-center justify-center">
+                    <UserIcon className="w-4 h-4" />
+                    <Text className="text-sm">{user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0)}</Text>
+                  </Avatar.Fallback>
+                  <Avatar.Image src={user.user_metadata?.avatar_url ?? ""} />
+                </Avatar.Root>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="logout" onClick={handleSignOut}>
+                      登出
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
+          </>
         ) : (
           <Button asChild>
             <Link href="/auth/login">登入</Link>
