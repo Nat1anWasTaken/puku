@@ -20,7 +20,7 @@ export type Database = {
           file_path?: string | null;
           id?: string;
           owner_id: string;
-          title?: string;
+          title: string;
         };
         Update: {
           composers?: string[];
