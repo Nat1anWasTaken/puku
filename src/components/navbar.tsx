@@ -40,7 +40,9 @@ export function Navbar() {
     <Flex direction="row" justify="space-between" align="center" p={4}>
       {/* Left part */}
       <HStack>
-        <Heading fontSize="xl">Puku</Heading>
+        <Link href="/">
+          <Heading fontSize="xl">Puku</Heading>
+        </Link>
       </HStack>
 
       {/* Right part */}
@@ -69,9 +71,7 @@ export function Navbar() {
           </Menu.Root>
         ) : (
           <Button asChild>
-            <Link href="/login" className="active:bg-transparent">
-              Login
-            </Link>
+            <Link href="/login">Login</Link>
           </Button>
         )}
       </HStack>
