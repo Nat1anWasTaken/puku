@@ -37,3 +37,13 @@ export async function updateArrangementFilePath(arrangementId: string, filePath:
     throw new Error(`Failed to update arrangement file path: ${error.message}`);
   }
 }
+
+export async function updateArrangementPreviewPath(arrangementId: string, previewPath: string): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("arrangements").update({ preview_path: previewPath }).eq("id", arrangementId);
+
+  if (error) {
+    throw new Error(`Failed to update arrangement preview path: ${error.message}`);
+  }
+}
