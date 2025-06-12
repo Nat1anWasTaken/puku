@@ -1,4 +1,3 @@
-export { EditArrangementDialog } from "./edit-arrangement-dialog";
 export { DeleteArrangementDialog } from "./delete-arrangement-dialog";
 export { LibraryArrangementCard } from "./library-arrangement-card";
 export { LibrarySkeleton } from "./library-skeleton";
