@@ -7,33 +7,33 @@ export async function GET(request: NextRequest, { params }: { params: { arrangem
     const { arrangementId } = params;
 
     if (!arrangementId) {
-      return NextResponse.json({ error: "缺少編曲 ID" }, { status: 400 });
+      return NextResponse.json({ error: "Missing arrangement ID" }, { status: 400 });
     }
 
     const supabase = await createClient();
 
-    // 檢查用戶是否已登入
+    // Check if user is logged in
     const {
       data: { user },
       error: authError
     } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: "未授權" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 查詢編曲記錄
+    // Query arrangement record
     const { data: arrangement, error: fetchError } = await supabase.from("arrangements").select("id, file_path, preview_path, owner_id").eq("id", arrangementId).single();
 
     if (fetchError || !arrangement) {
-      return NextResponse.json({ error: "找不到編曲" }, { status: 404 });
+      return NextResponse.json({ error: "Arrangement not found" }, { status: 404 });
     }
 
-    // 檢查用戶權限（只有編曲所有者可以存取）
+    // Check user permission (only the owner can access)
     if (arrangement.owner_id !== user.id) {
-      return NextResponse.json({ error: "沒有權限存取此編曲" }, { status: 403 });
+      return NextResponse.json({ error: "No permission to access this arrangement" }, { status: 403 });
     }
 
-    // 如果縮圖已存在，直接返回
+    // If thumbnail already exists, return it directly
     if (arrangement.preview_path) {
       const { data } = supabase.storage.from("thumbnails").getPublicUrl(arrangement.preview_path);
 
@@ -43,23 +43,23 @@ export async function GET(request: NextRequest, { params }: { params: { arrangem
       });
     }
 
-    // 檢查是否有 PDF 文件
+    // Check if PDF file exists
     if (!arrangement.file_path) {
-      return NextResponse.json({ error: "編曲尚未上傳 PDF 文件" }, { status: 400 });
+      return NextResponse.json({ error: "Arrangement PDF file not uploaded yet" }, { status: 400 });
     }
 
-    // 生成縮圖
+    // Generate thumbnail
     const { previewPath } = await generateThumbnail(arrangementId, arrangement.file_path);
 
-    // 更新資料庫中的 preview_path
+    // Update preview_path in the database
     const { error: updateError } = await supabase.from("arrangements").update({ preview_path: previewPath }).eq("id", arrangementId);
 
     if (updateError) {
-      console.error("更新 preview_path 失敗:", updateError);
-      return NextResponse.json({ error: "更新資料庫失敗" }, { status: 500 });
+      console.error("Failed to update preview_path:", updateError);
+      return NextResponse.json({ error: "Failed to update database" }, { status: 500 });
     }
 
-    // 返回縮圖 URL
+    // Return thumbnail URL
     const { data } = supabase.storage.from("thumbnails").getPublicUrl(previewPath);
 
     return NextResponse.json({
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: { arrangem
       previewPath
     });
   } catch (error) {
-    console.error("縮圖生成失敗:", error);
-    return NextResponse.json({ error: "縮圖生成失敗" }, { status: 500 });
+    console.error("Thumbnail generation failed:", error);
+    return NextResponse.json({ error: "Thumbnail generation failed" }, { status: 500 });
   }
 }
