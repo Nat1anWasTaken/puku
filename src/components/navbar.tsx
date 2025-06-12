@@ -29,9 +29,12 @@ export function Navbar() {
   return (
     <Flex direction="row" justify="space-between" align="center" p={4}>
       {/* 左側區塊 */}
-      <HStack gap={2}>
+      <HStack gap={2} align="center">
         <Link href="/">
           <Heading fontSize="xl">Puku</Heading>
+        </Link>
+        <Link href="/library" color="fg.muted">
+          我的圖書館
         </Link>
       </HStack>
 
@@ -41,7 +44,7 @@ export function Navbar() {
         {user ? (
           <>
             <Button asChild variant="outline">
-              <Link href="/upload">Upload Arrangement</Link>
+              <Link href="/upload">上傳編曲</Link>
             </Button>
             <Menu.Root>
               <Menu.Trigger>

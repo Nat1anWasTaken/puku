@@ -2,7 +2,6 @@
 
 import pdf from "pdf-thumbnail";
 import { createClient } from "@/lib/supabase/server";
-
 export async function generatePreviewImage(pdfBuffer: Buffer): Promise<Buffer> {
   const previewImageBuffer = await pdf(pdfBuffer, {
     compress: {
