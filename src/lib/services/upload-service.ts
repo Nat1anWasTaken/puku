@@ -22,6 +22,14 @@ export type UploadResult = {
   previewPath?: string;
 };
 
+/**
+ * Uploads an arrangement with multiple PDF files, merging them into a single document
+ * @param data - Upload data including arrangement details and PDF files to merge
+ * @param onProgress - Optional callback function to track upload progress
+ * @returns Promise<UploadResult> - Returns the arrangement ID, file path, and optional preview path
+ * @throws {Error} When any step of the upload process fails
+ * @description Handles the complete upload workflow: creates arrangement record, merges PDFs, uploads to storage, updates file path, and generates thumbnail
+ */
 export async function uploadArrangement(data: UploadArrangementData, onProgress?: (progress: UploadProgress) => void): Promise<UploadResult> {
   try {
     onProgress?.({

@@ -2,6 +2,14 @@
 
 import pdf from "pdf-thumbnail";
 import { createClient } from "@/lib/supabase/server";
+
+/**
+ * Generates a JPEG preview image from a PDF buffer
+ * @param pdfBuffer - The PDF file as a Buffer
+ * @returns Promise<Buffer> - Returns the generated JPEG image as a Buffer
+ * @throws {Error} When PDF processing or image generation fails
+ * @description Converts the first page of a PDF to a compressed JPEG image with 70% quality
+ */
 export async function generatePreviewImage(pdfBuffer: Buffer): Promise<Buffer> {
   const previewImageBuffer = await pdf(pdfBuffer, {
     compress: {
@@ -14,6 +22,13 @@ export async function generatePreviewImage(pdfBuffer: Buffer): Promise<Buffer> {
   return buffer;
 }
 
+/**
+ * Converts a readable stream to a Buffer
+ * @param stream - The readable stream to convert
+ * @returns Promise<Buffer> - Returns the stream data as a Buffer
+ * @throws {Error} When stream reading fails
+ * @description Utility function to convert stream data to Buffer for processing
+ */
 async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
   const chunks: Buffer[] = [];
 
@@ -24,6 +39,14 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
   });
 }
 
+/**
+ * Generates and uploads a thumbnail for an arrangement
+ * @param arrangementId - The arrangement ID to generate thumbnail for
+ * @param filePath - The storage path of the PDF file
+ * @returns Promise<{thumbnailBuffer: Buffer, previewPath: string}> - Returns the thumbnail buffer and storage path
+ * @throws {Error} When PDF download, thumbnail generation, or upload fails
+ * @description Downloads PDF from storage, generates thumbnail from first page, and uploads to thumbnails bucket
+ */
 export async function generateThumbnail(arrangementId: string, filePath: string): Promise<{ thumbnailBuffer: Buffer; previewPath: string }> {
   const supabase = await createClient();
 

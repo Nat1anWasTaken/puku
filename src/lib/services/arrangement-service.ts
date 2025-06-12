@@ -17,6 +17,12 @@ export type UpdateArrangementData = {
 
 export type ArrangementWithDetails = Database["public"]["Tables"]["arrangements"]["Row"];
 
+/**
+ * Creates a new arrangement record in the database
+ * @param data - Arrangement data including title, composers, ensemble type, and owner ID
+ * @returns Promise<string> - Returns the ID of the newly created arrangement
+ * @throws {Error} When arrangement creation fails
+ */
 export async function createArrangement(data: CreateArrangementData): Promise<string> {
   const supabase = createClient();
 
@@ -37,6 +43,12 @@ export async function createArrangement(data: CreateArrangementData): Promise<st
   return arrangement.id;
 }
 
+/**
+ * Retrieves all arrangements owned by a specific user
+ * @param userId - The user ID to fetch arrangements for
+ * @returns Promise<ArrangementWithDetails[]> - Returns a list of user's arrangements ordered by creation date (newest first)
+ * @throws {Error} When fetching arrangements fails
+ */
 export async function getUserArrangements(userId: string): Promise<ArrangementWithDetails[]> {
   const supabase = createClient();
 
@@ -49,6 +61,13 @@ export async function getUserArrangements(userId: string): Promise<ArrangementWi
   return arrangements || [];
 }
 
+/**
+ * Retrieves a specific arrangement by its ID
+ * @param arrangementId - The arrangement ID to fetch
+ * @param userId - Optional user ID for additional ownership verification
+ * @returns Promise<ArrangementWithDetails> - Returns the arrangement details
+ * @throws {Error} When arrangement doesn't exist or fetch fails
+ */
 export async function getArrangementById(arrangementId: string, userId?: string): Promise<ArrangementWithDetails> {
   const supabase = createClient();
 
@@ -67,6 +86,13 @@ export async function getArrangementById(arrangementId: string, userId?: string)
   return arrangement;
 }
 
+/**
+ * Updates an existing arrangement record
+ * @param arrangementId - The arrangement ID to update
+ * @param userId - User ID for ownership verification
+ * @param data - Partial arrangement data to update
+ * @throws {Error} When update fails or user lacks permission
+ */
 export async function updateArrangement(arrangementId: string, userId: string, data: UpdateArrangementData): Promise<void> {
   const supabase = createClient();
 
@@ -84,6 +110,13 @@ export async function updateArrangement(arrangementId: string, userId: string, d
   }
 }
 
+/**
+ * Deletes an arrangement record and its associated files
+ * @param arrangementId - The arrangement ID to delete
+ * @param userId - User ID for ownership verification
+ * @throws {Error} When deletion fails or user lacks permission
+ * @description Also cleans up associated files from storage (arrangement PDF and thumbnail)
+ */
 export async function deleteArrangement(arrangementId: string, userId: string): Promise<void> {
   const supabase = createClient();
 
@@ -110,6 +143,13 @@ export async function deleteArrangement(arrangementId: string, userId: string): 
   }
 }
 
+/**
+ * Updates the file path for an arrangement
+ * @param arrangementId - The arrangement ID to update
+ * @param filePath - The new file path to set
+ * @throws {Error} When update fails
+ * @description Typically called after file upload completion to link arrangement record with actual file
+ */
 export async function updateArrangementFilePath(arrangementId: string, filePath: string): Promise<void> {
   const supabase = createClient();
 
@@ -120,6 +160,13 @@ export async function updateArrangementFilePath(arrangementId: string, filePath:
   }
 }
 
+/**
+ * Updates the preview/thumbnail path for an arrangement
+ * @param arrangementId - The arrangement ID to update
+ * @param previewPath - The new preview/thumbnail path to set
+ * @throws {Error} When update fails
+ * @description Typically called after thumbnail generation to link arrangement record with thumbnail file
+ */
 export async function updateArrangementPreviewPath(arrangementId: string, previewPath: string): Promise<void> {
   const supabase = createClient();
 
