@@ -25,7 +25,7 @@ export function LibraryArrangementCard({ arrangement, onView }: LibraryArrangeme
   return (
     <Card.Root overflow="hidden" h="full">
       <Box position="relative">
-        <ThumbnailImage previewPath={arrangement.preview_path} title={arrangement.title} filePath={arrangement.file_path} />
+        <ThumbnailImage title={arrangement.title} filePath={arrangement.file_path} arrangementId={arrangement.id} />
 
         {/* 可見性標籤 */}
         <Badge position="absolute" top="2" left="2" colorScheme={arrangement.visibility === "public" ? "green" : "gray"} size="sm">

@@ -5,7 +5,8 @@ export async function uploadFileToStorage(bucketName: string, filePath: string, 
 
   const { data, error } = await supabase.storage.from(bucketName).upload(filePath, file, {
     cacheControl: "3600",
-    upsert: false
+    upsert: false,
+    contentType: "application/pdf"
   });
 
   if (error) {

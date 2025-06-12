@@ -1,0 +1,94 @@
+import { NextRequest, NextResponse } from "next/server";
+import { generateThumbnail } from "@/lib/services/thumbnail-service";
+import { updateArrangementPreviewPath } from "@/lib/services/arrangement-service";
+import { createClient } from "@/lib/supabase/server";
+
+interface RouteParams {
+  params: {
+    arrangement_id: string;
+  };
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { arrangement_id } = params;
+
+    if (!arrangement_id) {
+      return NextResponse.json({ error: "缺少編曲 ID" }, { status: 400 });
+    }
+
+    // 驗證用戶權限
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "用戶未登入" }, { status: 401 });
+    }
+
+    // 獲取編曲資訊
+    const { data: arrangement, error: fetchError } = await supabase.from("arrangements").select("id, file_path, preview_path, owner_id").eq("id", arrangement_id).single();
+
+    if (fetchError || !arrangement) {
+      return NextResponse.json({ error: "找不到編曲" }, { status: 404 });
+    }
+
+    if (arrangement.owner_id !== user.id) {
+      return NextResponse.json({ error: "沒有權限存取此編曲" }, { status: 403 });
+    }
+
+    // 如果已經有縮圖，返回簽名 URL
+    if (arrangement.preview_path) {
+      const { data, error } = await supabase.storage.from("thumbnails").createSignedUrl(arrangement.preview_path, 60 * 60); // 1 hour expiry
+
+      if (error) {
+        console.error("創建簽名 URL 失敗:", error);
+        return NextResponse.json({ error: "獲取縮圖失敗" }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        thumbnailUrl: data.signedUrl,
+        previewPath: arrangement.preview_path
+      });
+    }
+
+    // 如果沒有縮圖但有檔案，生成縮圖
+    if (arrangement.file_path) {
+      try {
+        const { previewPath } = await generateThumbnail(arrangement_id, arrangement.file_path);
+
+        // 更新編曲記錄
+        await updateArrangementPreviewPath(arrangement_id, previewPath);
+
+        // 返回新生成的縮圖簽名 URL
+        const { data, error } = await supabase.storage.from("thumbnails").createSignedUrl(previewPath, 60 * 60); // 1 hour expiry
+
+        if (error) {
+          console.error("創建簽名 URL 失敗:", error);
+          return NextResponse.json({ error: "獲取縮圖失敗" }, { status: 500 });
+        }
+
+        return NextResponse.json({
+          thumbnailUrl: data.signedUrl,
+          previewPath: previewPath
+        });
+      } catch (thumbnailError) {
+        console.error("縮圖生成失敗:", thumbnailError);
+        return NextResponse.json({ error: "縮圖生成失敗" }, { status: 500 });
+      }
+    }
+
+    // 沒有檔案
+    return NextResponse.json({ error: "沒有可用的檔案" }, { status: 404 });
+  } catch (error) {
+    console.error("API 錯誤:", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "內部伺服器錯誤"
+      },
+      { status: 500 }
+    );
+  }
+}

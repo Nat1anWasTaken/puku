@@ -1,7 +1,8 @@
 import { toaster } from "@/components/ui/toaster";
-import { createArrangement, CreateArrangementData, updateArrangementFilePath } from "@/lib/services/arrangement-service";
+import { createArrangement, CreateArrangementData, updateArrangementFilePath, updateArrangementPreviewPath } from "@/lib/services/arrangement-service";
 import { mergePDFFiles } from "@/lib/services/pdf-service";
 import { generateArrangementFilePath, uploadFileToStorage } from "@/lib/services/storage-service";
+import { generateThumbnail } from "@/lib/services/thumbnail-service";
 
 const BUCKET_NAME = "arrangements";
 
@@ -10,7 +11,7 @@ export type UploadArrangementData = CreateArrangementData & {
 };
 
 export type UploadProgress = {
-  step: "creating" | "merging" | "uploading" | "updating" | "completed";
+  step: "creating" | "merging" | "uploading" | "updating" | "generating_thumbnail" | "completed";
   message: string;
   progress: number;
 };
@@ -18,14 +19,15 @@ export type UploadProgress = {
 export type UploadResult = {
   arrangementId: string;
   filePath: string;
+  previewPath?: string;
 };
 
 export async function uploadArrangement(data: UploadArrangementData, onProgress?: (progress: UploadProgress) => void): Promise<UploadResult> {
   try {
     onProgress?.({
       step: "creating",
-      message: "Creating arrangement...",
-      progress: 20
+      message: "創建編曲記錄中...",
+      progress: 15
     });
 
     const arrangementId = await createArrangement({
@@ -37,16 +39,16 @@ export async function uploadArrangement(data: UploadArrangementData, onProgress?
 
     onProgress?.({
       step: "merging",
-      message: "Merging PDF files...",
-      progress: 40
+      message: "合併 PDF 檔案中...",
+      progress: 30
     });
 
     const mergedPdfBytes = await mergePDFFiles(data.files);
 
     onProgress?.({
       step: "uploading",
-      message: "Uploading files to Supabase...",
-      progress: 70
+      message: "上傳檔案到伺服器中...",
+      progress: 50
     });
 
     const filePath = generateArrangementFilePath(arrangementId);
@@ -54,26 +56,43 @@ export async function uploadArrangement(data: UploadArrangementData, onProgress?
 
     onProgress?.({
       step: "updating",
-      message: "Updating arrangement file path...",
-      progress: 90
+      message: "更新編曲檔案路徑中...",
+      progress: 65
     });
 
     await updateArrangementFilePath(arrangementId, filePath);
 
     onProgress?.({
+      step: "generating_thumbnail",
+      message: "生成縮圖中...",
+      progress: 80
+    });
+
+    let previewPath: string | undefined;
+    try {
+      const thumbnailResult = await generateThumbnail(arrangementId, filePath);
+      previewPath = thumbnailResult.previewPath;
+
+      await updateArrangementPreviewPath(arrangementId, previewPath);
+    } catch (thumbnailError) {
+      console.error("縮圖生成失敗:", thumbnailError);
+    }
+
+    onProgress?.({
       step: "completed",
-      message: "Upload completed!",
+      message: "上傳完成！",
       progress: 100
     });
 
     return {
       arrangementId,
-      filePath
+      filePath,
+      previewPath
     };
   } catch (error) {
     toaster.error({
-      title: "Upload failed",
-      description: error instanceof Error ? error.message : "Unknown error, please try again later. "
+      title: "上傳失敗",
+      description: error instanceof Error ? error.message : "未知錯誤，請稍後再試。"
     });
     throw error;
   }
