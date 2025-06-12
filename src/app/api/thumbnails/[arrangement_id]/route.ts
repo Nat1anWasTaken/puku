@@ -11,7 +11,7 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { arrangement_id } = params;
+    const { arrangement_id } = await params;
 
     if (!arrangement_id) {
       return NextResponse.json({ error: "缺少編曲 ID" }, { status: 400 });
