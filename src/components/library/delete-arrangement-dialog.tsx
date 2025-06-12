@@ -15,7 +15,7 @@ export function DeleteArrangementDialog({ isOpen, onClose, onConfirm, arrangemen
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()}>
+    <Dialog.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()} placement={"center"}>
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>

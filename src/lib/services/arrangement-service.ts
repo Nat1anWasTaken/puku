@@ -121,7 +121,7 @@ export async function deleteArrangement(arrangementId: string, userId: string): 
   const supabase = createClient();
 
   // First get the arrangement to get file paths for cleanup
-  const { data: arrangement, error: fetchError } = await supabase.from("arrangements").select("file_path, preview_path").eq("id", arrangementId).eq("owner_id", userId).single();
+  const { error: fetchError } = await supabase.from("arrangements").select("file_path, preview_path").eq("id", arrangementId).eq("owner_id", userId).single();
 
   if (fetchError) {
     throw new Error(`Failed to fetch arrangement for deletion: ${fetchError.message}`);
@@ -134,13 +134,7 @@ export async function deleteArrangement(arrangementId: string, userId: string): 
     throw new Error(`Failed to delete arrangement: ${deleteError.message}`);
   }
 
-  // Clean up files in storage (ignore errors as the main record is already deleted)
-  if (arrangement.file_path) {
-    await supabase.storage.from("arrangements").remove([arrangement.file_path]);
-  }
-  if (arrangement.preview_path) {
-    await supabase.storage.from("thumbnails").remove([arrangement.preview_path]);
-  }
+  // We don't have to delete the arrangement and thumbnail files here, the deletion will be handled by the database functions.
 }
 
 /**

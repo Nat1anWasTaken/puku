@@ -54,7 +54,7 @@ export async function generateThumbnail(arrangementId: string, filePath: string)
   const { data: pdfData, error: downloadError } = await supabase.storage.from("arrangements").download(filePath);
 
   if (downloadError || !pdfData) {
-    throw new Error(`下載 PDF 文件失敗: ${downloadError?.message}`);
+    throw new Error(`下載 PDF 文件失敗: ${downloadError}`);
   }
 
   // 將 Blob 轉換為 Buffer

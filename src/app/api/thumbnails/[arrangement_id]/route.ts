@@ -55,7 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // 如果沒有縮圖但有檔案，生成縮圖
-    if (arrangement.file_path) {
+    if (arrangement.file_path && !arrangement.preview_path) {
       try {
         const { previewPath } = await generateThumbnail(arrangement_id, arrangement.file_path);
 

@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Container, VStack, HStack, Box, Button, Text, IconButton, Alert } from "@chakra-ui/react";
-import { ArrowLeft, Save, X } from "lucide-react";
+import { Container, VStack, HStack, Button, Text, IconButton, Alert } from "@chakra-ui/react";
+import { ArrowLeft, Save, X, Trash2 } from "lucide-react";
 import { ArrangementWithDetails } from "@/lib/services/arrangement-service-server";
 import { useArrangementActions } from "@/hooks/use-arrangements";
 import { toaster } from "@/components/ui/toaster";
+import { ArrangementEditForm } from "./arrangement-edit-form";
+import { AutoSaveIndicator } from "./auto-save-indicator";
+import { DeleteArrangementDialog } from "@/components/library/delete-arrangement-dialog";
+import { Database } from "@/lib/supabase/types";
 
 interface ArrangementEditPageProps {
   arrangement: ArrangementWithDetails;
@@ -15,20 +19,23 @@ interface ArrangementEditPageProps {
 
 export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPageProps) {
   const router = useRouter();
-  const { editArrangement, isUpdating } = useArrangementActions();
+  const { editArrangement, removeArrangement, isUpdating, isDeleting } = useArrangementActions();
 
   // 表單狀態
   const [title, setTitle] = useState(arrangement.title);
   const [composers, setComposers] = useState(arrangement.composers);
-  const [ensembleType, setEnsembleType] = useState(arrangement.ensemble_type);
-  const [visibility, setVisibility] = useState(arrangement.visibility);
-
-  // 暫時使用這些setter來避免linter警告，實際表單將在第三階段實施
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _ = { setTitle, setComposers, setEnsembleType, setVisibility };
+  const [ensembleType, setEnsembleType] = useState<Database["public"]["Enums"]["ensemble_type"]>(arrangement.ensemble_type);
+  const [visibility, setVisibility] = useState<Database["public"]["Enums"]["visibility"]>(arrangement.visibility);
 
   // 追蹤是否有未保存的更改
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // 自動保存相關狀態
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // 刪除對話框狀態
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // 檢查表單是否有效
   const isFormValid = title.trim().length >= 3 && composers.some((c) => c.trim().length > 0);
@@ -36,6 +43,43 @@ export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPage
   // 檢查是否有更改
   const hasChanges =
     title !== arrangement.title || JSON.stringify(composers) !== JSON.stringify(arrangement.composers) || ensembleType !== arrangement.ensemble_type || visibility !== arrangement.visibility;
+
+  // 自動保存草稿功能
+  const autoSaveDraft = useCallback(async () => {
+    if (!hasChanges || !isFormValid) return;
+
+    setIsAutoSaving(true);
+    try {
+      // 這裡可以保存到本地存儲或者發送到服務器作為草稿
+      localStorage.setItem(
+        `arrangement-draft-${arrangement.id}`,
+        JSON.stringify({
+          title: title.trim(),
+          composers: composers.filter((c) => c.trim().length > 0),
+          ensembleType,
+          visibility,
+          lastSaved: new Date().toISOString()
+        })
+      );
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error("自動保存失敗:", error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [arrangement.id, title, composers, ensembleType, visibility, hasChanges, isFormValid]);
+
+  // 定期自動保存
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (hasUnsavedChanges && !isAutoSaving) {
+        autoSaveDraft();
+      }
+    }, 30000); // 每30秒自動保存一次
+
+    return () => clearInterval(autoSaveInterval);
+  }, [hasUnsavedChanges, isAutoSaving, autoSaveDraft]);
 
   const handleSave = async () => {
     if (!isFormValid) {
@@ -79,6 +123,13 @@ export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPage
     }
   };
 
+  const handleDelete = async () => {
+    const success = await removeArrangement(arrangement.id, userId);
+    if (success) {
+      router.push("/library");
+    }
+  };
+
   return (
     <Container maxW="4xl" py={8}>
       <VStack gap={6} align="stretch">
@@ -95,15 +146,20 @@ export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPage
               <Text fontSize="md" color="gray.600">
                 {arrangement.title}
               </Text>
+              <AutoSaveIndicator isAutoSaving={isAutoSaving} lastSaved={lastSaved} hasUnsavedChanges={hasUnsavedChanges} />
             </VStack>
           </HStack>
 
           <HStack gap={2}>
-            <Button variant="outline" onClick={handleCancel} disabled={isUpdating}>
+            <Button variant="outline" colorScheme="red" onClick={() => setIsDeleteDialogOpen(true)} disabled={isUpdating || isDeleting}>
+              <Trash2 size={16} />
+              刪除
+            </Button>
+            <Button variant="outline" onClick={handleCancel} disabled={isUpdating || isDeleting}>
               <X size={16} />
               取消
             </Button>
-            <Button colorScheme="blue" onClick={handleSave} disabled={!isFormValid || !hasChanges || isUpdating} loading={isUpdating} loadingText="保存中...">
+            <Button colorScheme="blue" onClick={handleSave} disabled={!isFormValid || !hasChanges || isUpdating || isDeleting} loading={isUpdating} loadingText="保存中...">
               <Save size={16} />
               保存變更
             </Button>
@@ -119,12 +175,20 @@ export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPage
         )}
 
         {/* 編輯表單區域 */}
-        <Box>
-          {/* 這裡將在第三階段添加詳細的編輯表單組件 */}
-          <Text color="gray.500" textAlign="center" py={8}>
-            編輯表單將在下一階段實施
-          </Text>
-        </Box>
+        <ArrangementEditForm
+          title={title}
+          setTitle={setTitle}
+          composers={composers}
+          setComposers={setComposers}
+          ensembleType={ensembleType}
+          setEnsembleType={setEnsembleType}
+          visibility={visibility}
+          setVisibility={setVisibility}
+          onInputChange={() => setHasUnsavedChanges(true)}
+        />
+
+        {/* 刪除確認對話框 */}
+        <DeleteArrangementDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} onConfirm={handleDelete} arrangementTitle={arrangement.title} />
       </VStack>
     </Container>
   );
