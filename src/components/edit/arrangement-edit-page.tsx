@@ -113,7 +113,7 @@ function ArrangementEditPageClient({ arrangement, userId }: ArrangementEditPageP
     const success = await editArrangement(arrangement.id, userId, {
       title: title.trim(),
       composers: composers.filter((c) => c.trim().length > 0),
-      ensembleType,
+      ensemble_type: ensembleType as Database["public"]["Enums"]["ensemble_type"],
       visibility
     });
 

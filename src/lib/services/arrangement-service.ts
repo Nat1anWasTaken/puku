@@ -1,11 +1,20 @@
 import { createClient } from "@/lib/supabase/client";
-import { Database, TablesInsert } from "@/lib/supabase/types";
+import { Database, Tables, TablesInsert } from "@/lib/supabase/types";
 
 export type CreateArrangementData = {
   title: string;
   composers: string[];
   ensembleType: string;
   ownerId: string;
+};
+
+export type UpdateArrangementData = {
+  title?: string;
+  composers?: string[];
+  ensemble_type?: Database["public"]["Enums"]["ensemble_type"];
+  file_path?: string;
+  preview_path?: string;
+  visibility?: Database["public"]["Enums"]["visibility"];
 };
 
 export async function createArrangement(data: CreateArrangementData): Promise<string> {
@@ -65,6 +74,16 @@ export async function createArrangement(data: CreateArrangementData): Promise<st
   return arrangement.id;
 }
 
+export async function updateArrangement(arrangementId: string, data: UpdateArrangementData): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("arrangements").update(data).eq("id", arrangementId);
+
+  if (error) {
+    throw new Error(`Failed to update arrangement: ${error.message}`);
+  }
+}
+
 export async function updateArrangementFilePath(arrangementId: string, filePath: string): Promise<void> {
   const supabase = createClient();
 
@@ -83,6 +102,27 @@ export async function updateArrangementPreviewPath(arrangementId: string, previe
   if (error) {
     throw new Error(`Failed to update arrangement preview path: ${error.message}`);
   }
+}
+
+export async function deleteArrangement(arrangementId: string): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("arrangements").delete().eq("id", arrangementId);
+
+  if (error) {
+    throw new Error(`Failed to delete arrangement: ${error.message}`);
+  }
+}
+
+export async function getUserArrangements(ownerId: string): Promise<Tables<"arrangements">[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.from("arrangements").select("*").eq("owner_id", ownerId);
+
+  if (error) {
+    throw new Error(`Failed to get user arrangements: ${error.message}`);
+  }
+
+  return data;
 }
 
 export async function checkTableSchema(): Promise<void> {

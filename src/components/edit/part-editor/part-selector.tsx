@@ -2,7 +2,7 @@
 
 import { Part } from "@/lib/services/part-service";
 import { generatePageThumbnailsFromBuffer } from "@/lib/services/thumbnail-client";
-import { Box, Card, Grid, Image, Skeleton, Text } from "@chakra-ui/react";
+import { Box, Card, Flex, Image, Skeleton, Text } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
 
 interface PartSelectorProps {
@@ -106,7 +106,7 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, o
         {isLoading ? (
           <Text>載入頁面中...</Text>
         ) : totalPages ? (
-          <Grid templateColumns="repeat(4, 1fr)" gap={2}>
+          <Flex flexWrap="wrap" gap={2}>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
               <Box
                 key={pageNum}
@@ -114,6 +114,7 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, o
                 p={2}
                 bg={getPageBackgroundColor(pageNum)}
                 border="2px solid"
+                w="250px"
                 borderColor={selectedPages.has(pageNum) ? "blue.500" : "bg.emphasized"}
                 borderRadius="md"
                 cursor="pointer"
@@ -150,7 +151,7 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, o
                 </Text>
               </Box>
             ))}
-          </Grid>
+          </Flex>
         ) : (
           <Text>無法載入頁面信息</Text>
         )}
