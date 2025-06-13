@@ -45,6 +45,7 @@ export type Database = {
           created_at: string;
           end_page: number | null;
           id: number;
+          label: string;
           start_page: number | null;
         };
         Insert: {
@@ -52,6 +53,7 @@ export type Database = {
           created_at?: string;
           end_page?: number | null;
           id?: number;
+          label: string;
           start_page?: number | null;
         };
         Update: {
@@ -59,6 +61,7 @@ export type Database = {
           created_at?: string;
           end_page?: number | null;
           id?: number;
+          label?: string;
           start_page?: number | null;
         };
         Relationships: [
