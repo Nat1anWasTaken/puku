@@ -1,7 +1,7 @@
 "use server";
 
-import pdf from "pdf-thumbnail";
 import { createClient } from "@/lib/supabase/server";
+import pdf from "pdf-thumbnail";
 
 /**
  * Generates a JPEG preview image from a PDF buffer
@@ -40,6 +40,39 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
 }
 
 /**
+ * Generates a JPEG preview image from a PDF buffer for a specific page
+ * @param pdfBuffer - The PDF file as ArrayBuffer
+ * @param pageNumber - The page number to generate thumbnail for (1-based)
+ * @returns Promise<Buffer> - Returns the generated JPEG image as a Buffer
+ * @throws {Error} When PDF processing or image generation fails
+ * @description Extracts a specific page from PDF and generates thumbnail using pdf-lib and pdf-thumbnail
+ */
+export async function generatePreviewImageFromPage(pdfBuffer: ArrayBuffer, pageNumber: number): Promise<Buffer> {
+  // 動態導入 pdf-lib 來提取特定頁面
+  const { PDFDocument } = await import("pdf-lib");
+
+  // 載入 PDF 文檔
+  const pdfDoc = await PDFDocument.load(pdfBuffer);
+
+  // 檢查頁碼是否有效
+  if (pageNumber < 1 || pageNumber > pdfDoc.getPageCount()) {
+    throw new Error(`無效的頁碼: ${pageNumber}. PDF 共有 ${pdfDoc.getPageCount()} 頁`);
+  }
+
+  // 創建新的 PDF 文檔，只包含指定頁面
+  const newPdfDoc = await PDFDocument.create();
+  const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [pageNumber - 1]); // pdf-lib 使用 0-based 索引
+  newPdfDoc.addPage(copiedPage);
+
+  // 將單頁 PDF 轉換為 Buffer
+  const singlePagePdfBytes = await newPdfDoc.save();
+  const singlePagePdfBuffer = Buffer.from(singlePagePdfBytes);
+
+  // 使用現有的 generatePreviewImage 函數生成縮圖
+  return await generatePreviewImage(singlePagePdfBuffer);
+}
+
+/**
  * Generates and uploads a thumbnail for an arrangement
  * @param arrangementId - The arrangement ID to generate thumbnail for
  * @param filePath - The storage path of the PDF file
@@ -66,6 +99,41 @@ export async function generateThumbnail(arrangementId: string, filePath: string)
 
   // 定義縮圖路徑
   const previewPath = `thumbnails/${arrangementId}.jpg`;
+
+  // 上傳縮圖到儲存空間
+  const { error: uploadError } = await supabase.storage.from("thumbnails").upload(previewPath, thumbnailBuffer, {
+    contentType: "image/jpeg",
+    cacheControl: "3600",
+    upsert: true
+  });
+
+  if (uploadError) {
+    throw new Error(`上傳縮圖失敗: ${uploadError.message}`);
+  }
+
+  return {
+    thumbnailBuffer,
+    previewPath
+  };
+}
+
+/**
+ * Generates and uploads a thumbnail for a part using PDF buffer from React Query cache
+ * @param partId - The part ID to generate thumbnail for
+ * @param pdfBuffer - The PDF file as ArrayBuffer (from React Query cache)
+ * @param startPage - The start page of the part (1-based)
+ * @returns Promise<{thumbnailBuffer: Buffer, previewPath: string}> - Returns the thumbnail buffer and storage path
+ * @throws {Error} When thumbnail generation or upload fails
+ * @description Generates thumbnail from the start page of a part and uploads to thumbnails bucket
+ */
+export async function generatePartThumbnail(partId: number, pdfBuffer: ArrayBuffer, startPage: number): Promise<{ thumbnailBuffer: Buffer; previewPath: string }> {
+  const supabase = await createClient();
+
+  // 生成縮圖
+  const thumbnailBuffer = await generatePreviewImageFromPage(pdfBuffer, startPage);
+
+  // 定義縮圖路徑
+  const previewPath = `thumbnails/${partId}.jpg`;
 
   // 上傳縮圖到儲存空間
   const { error: uploadError } = await supabase.storage.from("thumbnails").upload(previewPath, thumbnailBuffer, {

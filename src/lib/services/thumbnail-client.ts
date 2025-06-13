@@ -174,7 +174,7 @@ export async function generatePageThumbnails(arrangementId: string, filePath: st
  */
 export async function getThumbnailForArrangement(arrangementId: string): Promise<ThumbnailResult> {
   try {
-    const response = await fetch(`/api/thumbnails/${arrangementId}`, {
+    const response = await fetch(`/api/thumbnails/arrangements/${arrangementId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -198,6 +198,45 @@ export async function getThumbnailForArrangement(arrangementId: string): Promise
     };
   } catch (error) {
     console.error("獲取縮圖失敗:", error);
+    return {
+      thumbnailUrl: null,
+      previewPath: null
+    };
+  }
+}
+
+/**
+ * Fetches thumbnail data for a specific part from the API.
+ * @param partId - The part ID to fetch thumbnail for
+ * @returns Promise<ThumbnailResult> - Returns thumbnail URL and preview path, or null values if not found
+ * @description Makes a client-side API call to retrieve part thumbnail information. Returns null values on error or when thumbnail doesn't exist.
+ */
+export async function getThumbnailForPart(partId: number): Promise<ThumbnailResult> {
+  try {
+    const response = await fetch(`/api/thumbnails/parts/${partId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return {
+          thumbnailUrl: null,
+          previewPath: null
+        };
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      thumbnailUrl: data.thumbnailUrl || null,
+      previewPath: data.previewPath || null
+    };
+  } catch (error) {
+    console.error("獲取聲部縮圖失敗:", error);
     return {
       thumbnailUrl: null,
       previewPath: null

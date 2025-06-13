@@ -75,6 +75,16 @@ export async function updateArrangementFilePath(arrangementId: string, filePath:
   }
 }
 
+export async function updateArrangementPreviewPath(arrangementId: string, previewPath: string): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("arrangements").update({ preview_path: previewPath }).eq("id", arrangementId);
+
+  if (error) {
+    throw new Error(`Failed to update arrangement preview path: ${error.message}`);
+  }
+}
+
 export async function testSimpleInsert(ownerId: string): Promise<void> {
   const supabase = createClient();
 
@@ -110,7 +120,7 @@ export async function checkTableSchema(): Promise<void> {
   console.log("Checking arrangements table schema...");
 
   // 嘗試查詢表的結構信息
-  const { data, error } = await supabase.from("arrangements").select("*").limit(0);
+  const { error } = await supabase.from("arrangements").select("*").limit(0);
 
   if (error) {
     console.error("Schema check error:", error);

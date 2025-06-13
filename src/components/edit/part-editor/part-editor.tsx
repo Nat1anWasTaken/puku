@@ -242,7 +242,7 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
                   <VStack gap={6} align="stretch" h="full">
                     {/* 聲部列表 */}
                     <Box flex={{ base: "unset", lg: 1 }} overflow={{ base: "unset", lg: "auto" }}>
-                      <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} pdfBuffer={pdfBuffer} h="full" />
+                      <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} h="full" />
                     </Box>
 
                     {/* 創建新聲部 */}

@@ -13,10 +13,9 @@ interface PartListingProps extends BoxProps {
   parts: PartWithColor[];
   onDeletePart: (id: number) => void;
   isLoading?: boolean;
-  pdfBuffer?: ArrayBuffer | null;
 }
 
-export function PartListing({ parts, onDeletePart, isLoading, pdfBuffer, ...boxProps }: PartListingProps) {
+export function PartListing({ parts, onDeletePart, isLoading, ...boxProps }: PartListingProps) {
   return (
     <Card.Root {...boxProps}>
       <Card.Header>
@@ -30,9 +29,7 @@ export function PartListing({ parts, onDeletePart, isLoading, pdfBuffer, ...boxP
           {isLoading ? (
             <Text>載入聲部中...</Text>
           ) : parts.length > 0 ? (
-            parts.map((part) => (
-              <PartItem key={part.id} id={part.id} name={part.name} startPage={part.start_page} endPage={part.end_page} color={part.color} onDelete={onDeletePart} pdfBuffer={pdfBuffer} />
-            ))
+            parts.map((part) => <PartItem key={part.id} id={part.id} name={part.name} startPage={part.start_page} endPage={part.end_page} color={part.color} onDelete={onDeletePart} />)
           ) : (
             <Text color="fg.muted">尚未創建任何聲部</Text>
           )}

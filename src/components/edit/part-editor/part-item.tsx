@@ -1,9 +1,10 @@
 "use client";
 
-import { generatePageThumbnailsFromBuffer } from "@/lib/services/thumbnail-client";
+import { getThumbnailForPart } from "@/lib/services/thumbnail-client";
 import { Box, HStack, IconButton, Image, Skeleton, Text, VStack } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { DeletePartDialog } from "./delete-part-dialog";
 
 interface PartItemProps {
@@ -13,37 +14,20 @@ interface PartItemProps {
   endPage: number | null;
   color: string;
   onDelete: (id: number) => void;
-  pdfBuffer?: ArrayBuffer | null;
 }
 
-export function PartItem({ id, name, startPage, endPage, color, onDelete, pdfBuffer }: PartItemProps) {
+export function PartItem({ id, name, startPage, endPage, color, onDelete }: PartItemProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(false);
 
-  const generateThumbnail = useCallback(async () => {
-    if (!pdfBuffer || !startPage) return;
-
-    setIsLoadingThumbnail(true);
-    try {
-      const thumbnailMap = await generatePageThumbnailsFromBuffer(pdfBuffer, [startPage]);
-      const thumbnail = thumbnailMap.get(startPage);
-      if (thumbnail) {
-        setThumbnailUrl(thumbnail);
-      }
-    } catch (error) {
-      console.error("生成縮圖失敗:", error);
-    } finally {
-      setIsLoadingThumbnail(false);
-    }
-  }, [pdfBuffer, startPage]);
-
-  useEffect(() => {
-    // 只有當有 pdfBuffer 和 startPage 時才生成縮圖
-    if (pdfBuffer && startPage) {
-      generateThumbnail();
-    }
-  }, [pdfBuffer, startPage, generateThumbnail]);
+  // 使用 React Query 獲取聲部縮圖
+  const { data: thumbnailResult, isLoading: isLoadingThumbnail } = useQuery({
+    queryKey: ["part-thumbnail", id],
+    queryFn: async () => {
+      return await getThumbnailForPart(id);
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1
+  });
 
   const handleDelete = () => {
     setIsDeleteDialogOpen(true);
@@ -71,8 +55,8 @@ export function PartItem({ id, name, startPage, endPage, color, onDelete, pdfBuf
           <Box w={16} h={20} borderRadius="md" overflow="hidden" border="1px solid" borderColor="border.subtle">
             {isLoadingThumbnail ? (
               <Skeleton w="full" h="full" />
-            ) : thumbnailUrl ? (
-              <Image src={thumbnailUrl} alt={`${name} 縮圖`} w="full" h="full" objectFit="cover" />
+            ) : thumbnailResult?.thumbnailUrl ? (
+              <Image src={thumbnailResult.thumbnailUrl} alt={`${name} 縮圖`} w="full" h="full" objectFit="cover" />
             ) : (
               <Box w="full" h="full" bg="bg.muted" display="flex" alignItems="center" justifyContent="center">
                 <Text fontSize="xs" color="fg.muted">
