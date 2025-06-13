@@ -18,6 +18,26 @@ interface ArrangementEditPageProps {
 }
 
 export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPageProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <Container maxW="4xl" py={8}>
+        <VStack gap={6} align="stretch">
+          <Text>載入中...</Text>
+        </VStack>
+      </Container>
+    );
+  }
+
+  return <ArrangementEditPageClient arrangement={arrangement} userId={userId} />;
+}
+
+function ArrangementEditPageClient({ arrangement, userId }: ArrangementEditPageProps) {
   const router = useRouter();
   const { editArrangement, removeArrangement, isUpdating, isDeleting } = useArrangementActions();
 

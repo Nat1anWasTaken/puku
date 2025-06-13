@@ -10,6 +10,7 @@ interface PartSelectorProps {
   selectedPages: Set<number>;
   parts: Part[];
   onPageToggle: (pageNumber: number) => void;
+  onBulkPageToggle?: (pageNumbers: number[]) => void;
   isLoading?: boolean;
   pdfBuffer?: ArrayBuffer | null;
 }
@@ -17,9 +18,10 @@ interface PartSelectorProps {
 // 預定義的顏色列表
 const PART_COLORS = ["red.500", "teal.500", "blue.500", "green.500", "yellow.400", "purple.400", "cyan.400", "amber.400", "indigo.400", "sky.400"];
 
-export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, isLoading, pdfBuffer }: PartSelectorProps) {
+export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, onBulkPageToggle, isLoading, pdfBuffer }: PartSelectorProps) {
   const [thumbnailUrls, setThumbnailUrls] = useState<Map<number, string>>(new Map());
   const [isLoadingThumbnails, setIsLoadingThumbnails] = useState(false);
+  const [lastClickedPage, setLastClickedPage] = useState<number | null>(null);
 
   // 生成所有頁面的縮圖
   const generateThumbnails = useCallback(async () => {
@@ -62,12 +64,53 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, i
     return "bg.subtle";
   };
 
+  // 處理頁面點擊，支援 Shift 鍵批量選擇
+  const handlePageClick = (pageNumber: number, event: React.MouseEvent) => {
+    // 阻止默認行為，避免文字選擇等干擾
+    event.preventDefault();
+
+    if (event.shiftKey && lastClickedPage !== null && lastClickedPage !== pageNumber) {
+      // Shift + 點擊：選擇範圍（只有當點擊不同頁面時）
+      const start = Math.min(lastClickedPage, pageNumber);
+      const end = Math.max(lastClickedPage, pageNumber);
+
+      // 獲取範圍內的所有頁面
+      const rangePages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+      // 使用批量切換功能（如果可用），否則逐一切換
+      if (onBulkPageToggle) {
+        onBulkPageToggle(rangePages);
+      } else {
+        // 後備方案：確定範圍選擇的目標狀態（基於點擊的頁面是否已選中）
+        const shouldSelect = !selectedPages.has(pageNumber);
+
+        // 批量選擇/取消選擇範圍內的所有頁面
+        for (let i = start; i <= end; i++) {
+          const isCurrentlySelected = selectedPages.has(i);
+          // 只有當頁面的當前狀態與目標狀態不同時才切換
+          if (isCurrentlySelected !== shouldSelect) {
+            onPageToggle(i);
+          }
+        }
+      }
+
+      // 範圍選擇後，不更新 lastClickedPage，保持原來的起始點
+      // 這樣用戶可以繼續從同一個起始點進行多次範圍選擇
+    } else {
+      // 普通點擊：切換單個頁面
+      onPageToggle(pageNumber);
+
+      // 只有在普通點擊時才更新最後點擊的頁面
+      setLastClickedPage(pageNumber);
+    }
+  };
+
   return (
     <Card.Root>
       <Card.Header>
         <Card.Title>頁面</Card.Title>
         <Text fontSize="sm" color="fg.muted">
-          點擊頁面來選擇，選中的頁面將用於創建新聲部
+          點擊頁面來選擇，按住 Shift 鍵點擊可批量選擇範圍，選中的頁面將用於創建新聲部
         </Text>
       </Card.Header>
       <Card.Body>
@@ -85,7 +128,13 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, i
                 borderColor={selectedPages.has(pageNum) ? "blue.500" : "bg.emphasized"}
                 borderRadius="md"
                 cursor="pointer"
-                onClick={() => onPageToggle(pageNum)}
+                onClick={(event) => handlePageClick(pageNum, event)}
+                onMouseDown={(event) => {
+                  // 確保 shift 鍵狀態被正確捕獲
+                  if (event.shiftKey) {
+                    event.preventDefault();
+                  }
+                }}
                 _hover={{ borderColor: "blue.400" }}
                 transition="all 0.2s"
                 position="relative"
