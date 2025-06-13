@@ -1,15 +1,15 @@
-"use client";
-
 import { Box, Button, Center, Container, Heading, HStack, Link, Text, VStack } from "@chakra-ui/react";
-import { useSearchParams } from "next/navigation";
 import { HiExclamationCircle, HiExclamationTriangle } from "react-icons/hi2";
 
-export default function ErrorPage() {
-  const searchParams = useSearchParams();
+type ErrorPageProps = {
+  params: Promise<{ error: string; error_description: string; error_code: string }>;
+};
 
-  const error = searchParams.get("error");
-  const errorDescription = searchParams.get("error_description");
-  const errorCode = searchParams.get("error_code");
+export default async function ErrorPage({ params }: ErrorPageProps) {
+  const { error, error_description, error_code } = await params;
+
+  const errorDescription = error_description;
+  const errorCode = error_code;
 
   const getErrorMessage = () => {
     if (errorDescription) {
@@ -94,7 +94,7 @@ export default function ErrorPage() {
                 Debug Info (Development Only)
               </Heading>
               <VStack gap={1} align="stretch">
-                {Array.from(searchParams.entries()).map(([key, value]) => (
+                {Object.entries({ error, error_description, error_code }).map(([key, value]) => (
                   <HStack key={key} fontSize="xs" color="fg.muted">
                     <Text fontWeight="bold">{key}:</Text>
                     <Text>{value}</Text>
