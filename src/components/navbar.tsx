@@ -33,9 +33,6 @@ export function Navbar() {
         <Link href="/">
           <Heading fontSize="xl">Puku</Heading>
         </Link>
-        <Link href="/library" color="fg.muted">
-          我的圖書館
-        </Link>
       </HStack>
 
       {/* 右側區塊 */}
@@ -59,6 +56,9 @@ export function Navbar() {
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
+                    <Menu.Item value="library" asChild>
+                      <Link href="/library">我的樂譜庫</Link>
+                    </Menu.Item>
                     <Menu.Item value="logout" onClick={handleSignOut}>
                       登出
                     </Menu.Item>
