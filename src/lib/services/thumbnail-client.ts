@@ -30,8 +30,11 @@ export async function generatePageThumbnail(pdfBuffer: ArrayBuffer, pageNumber: 
       pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
     }
 
+    // 創建 ArrayBuffer 的副本以避免被 PDF.js 分離
+    const pdfBufferCopy = pdfBuffer.slice();
+
     // 載入 PDF 文件
-    const pdf = await pdfjsLib.getDocument({ data: pdfBuffer }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: pdfBufferCopy }).promise;
 
     // 檢查頁碼是否有效
     if (pageNumber < 1 || pageNumber > pdf.numPages) {
@@ -72,15 +75,13 @@ export async function generatePageThumbnail(pdfBuffer: ArrayBuffer, pageNumber: 
 }
 
 /**
- * Downloads a PDF file from Supabase storage and generates thumbnails for specified pages
- * @param arrangementId - The arrangement ID
+ * Downloads a PDF file from Supabase storage and returns it as ArrayBuffer
  * @param filePath - The storage path of the PDF file
- * @param pageNumbers - Array of page numbers to generate thumbnails for (1-based)
- * @returns Promise<Map<number, string>> - Returns a map of page numbers to thumbnail data URLs
- * @throws {Error} When PDF download or thumbnail generation fails
- * @description Downloads PDF from storage and generates thumbnails for multiple pages
+ * @returns Promise<ArrayBuffer> - Returns the PDF file as ArrayBuffer
+ * @throws {Error} When PDF download fails
+ * @description Downloads PDF from storage and returns as ArrayBuffer for reuse
  */
-export async function generatePageThumbnails(arrangementId: string, filePath: string, pageNumbers: number[]): Promise<Map<number, string>> {
+export async function downloadPDFBuffer(filePath: string): Promise<ArrayBuffer> {
   // 確保只在客戶端運行
   if (typeof window === "undefined") {
     throw new Error("此功能只能在客戶端運行");
@@ -98,13 +99,34 @@ export async function generatePageThumbnails(arrangementId: string, filePath: st
 
     // 將 Blob 轉換為 ArrayBuffer
     const arrayBuffer = await pdfData.arrayBuffer();
+    return arrayBuffer;
+  } catch (error) {
+    console.error("下載 PDF 文件失敗:", error);
+    throw error;
+  }
+}
 
+/**
+ * Generates thumbnails for specified pages using a pre-downloaded PDF buffer
+ * @param pdfBuffer - The PDF file as ArrayBuffer
+ * @param pageNumbers - Array of page numbers to generate thumbnails for (1-based)
+ * @returns Promise<Map<number, string>> - Returns a map of page numbers to thumbnail data URLs
+ * @throws {Error} When thumbnail generation fails
+ * @description Generates thumbnails for multiple pages from a PDF buffer
+ */
+export async function generatePageThumbnailsFromBuffer(pdfBuffer: ArrayBuffer, pageNumbers: number[]): Promise<Map<number, string>> {
+  // 確保只在客戶端運行
+  if (typeof window === "undefined") {
+    throw new Error("此功能只能在客戶端運行");
+  }
+
+  try {
     // 生成所有頁面的縮圖
     const thumbnailMap = new Map<number, string>();
 
     for (const pageNumber of pageNumbers) {
       try {
-        const thumbnailDataUrl = await generatePageThumbnail(arrayBuffer, pageNumber);
+        const thumbnailDataUrl = await generatePageThumbnail(pdfBuffer, pageNumber);
         thumbnailMap.set(pageNumber, thumbnailDataUrl);
       } catch (error) {
         console.error(`生成第 ${pageNumber} 頁縮圖失敗:`, error);
@@ -113,6 +135,31 @@ export async function generatePageThumbnails(arrangementId: string, filePath: st
     }
 
     return thumbnailMap;
+  } catch (error) {
+    console.error("生成頁面縮圖失敗:", error);
+    throw error;
+  }
+}
+
+/**
+ * Downloads a PDF file from Supabase storage and generates thumbnails for specified pages
+ * @param arrangementId - The arrangement ID
+ * @param filePath - The storage path of the PDF file
+ * @param pageNumbers - Array of page numbers to generate thumbnails for (1-based)
+ * @returns Promise<Map<number, string>> - Returns a map of page numbers to thumbnail data URLs
+ * @throws {Error} When PDF download or thumbnail generation fails
+ * @description Downloads PDF from storage and generates thumbnails for multiple pages
+ * @deprecated Use downloadPDFBuffer and generatePageThumbnailsFromBuffer for better performance when generating multiple thumbnails
+ */
+export async function generatePageThumbnails(arrangementId: string, filePath: string, pageNumbers: number[]): Promise<Map<number, string>> {
+  // 確保只在客戶端運行
+  if (typeof window === "undefined") {
+    throw new Error("此功能只能在客戶端運行");
+  }
+
+  try {
+    const arrayBuffer = await downloadPDFBuffer(filePath);
+    return await generatePageThumbnailsFromBuffer(arrayBuffer, pageNumbers);
   } catch (error) {
     console.error("生成頁面縮圖失敗:", error);
     throw error;

@@ -1,6 +1,6 @@
 "use client";
 
-import { generatePageThumbnails } from "@/lib/services/thumbnail-client";
+import { generatePageThumbnailsFromBuffer } from "@/lib/services/thumbnail-client";
 import { Box, HStack, IconButton, Image, Skeleton, Text, VStack } from "@chakra-ui/react";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -13,21 +13,20 @@ interface PartItemProps {
   endPage: number | null;
   color: string;
   onDelete: (id: number) => void;
-  arrangementId?: string;
-  filePath?: string;
+  pdfBuffer?: ArrayBuffer | null;
 }
 
-export function PartItem({ id, name, startPage, endPage, color, onDelete, arrangementId, filePath }: PartItemProps) {
+export function PartItem({ id, name, startPage, endPage, color, onDelete, pdfBuffer }: PartItemProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(false);
 
   const generateThumbnail = useCallback(async () => {
-    if (!arrangementId || !filePath || !startPage) return;
+    if (!pdfBuffer || !startPage) return;
 
     setIsLoadingThumbnail(true);
     try {
-      const thumbnailMap = await generatePageThumbnails(arrangementId, filePath, [startPage]);
+      const thumbnailMap = await generatePageThumbnailsFromBuffer(pdfBuffer, [startPage]);
       const thumbnail = thumbnailMap.get(startPage);
       if (thumbnail) {
         setThumbnailUrl(thumbnail);
@@ -37,14 +36,14 @@ export function PartItem({ id, name, startPage, endPage, color, onDelete, arrang
     } finally {
       setIsLoadingThumbnail(false);
     }
-  }, [arrangementId, filePath, startPage]);
+  }, [pdfBuffer, startPage]);
 
   useEffect(() => {
-    // 只有當有 arrangementId、filePath 和 startPage 時才生成縮圖
-    if (arrangementId && filePath && startPage) {
+    // 只有當有 pdfBuffer 和 startPage 時才生成縮圖
+    if (pdfBuffer && startPage) {
       generateThumbnail();
     }
-  }, [arrangementId, filePath, startPage, generateThumbnail]);
+  }, [pdfBuffer, startPage, generateThumbnail]);
 
   const handleDelete = () => {
     setIsDeleteDialogOpen(true);

@@ -2,6 +2,7 @@
 
 import { toaster } from "@/components/ui/toaster";
 import { createPart, CreatePartData, deletePart, getPartsByArrangementId, getPDFPageCount, Part } from "@/lib/services/part-service";
+import { downloadPDFBuffer } from "@/lib/services/thumbnail-client";
 import { Alert, CloseButton, Drawer, Portal, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -37,6 +38,15 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     queryKey: ["pdf-pages", arrangementId, filePath],
     queryFn: () => (filePath ? getPDFPageCount(filePath) : Promise.resolve(0)),
     enabled: !!filePath && isOpen
+  });
+
+  // 下載 PDF buffer（只下載一次）
+  const { data: pdfBuffer, isLoading: isLoadingBuffer } = useQuery({
+    queryKey: ["pdf-buffer", filePath],
+    queryFn: () => (filePath ? downloadPDFBuffer(filePath) : Promise.resolve(null)),
+    enabled: !!filePath && isOpen,
+    staleTime: 10 * 60 * 1000, // 10 分鐘內不重新下載
+    gcTime: 15 * 60 * 1000 // 15 分鐘後清除緩存
   });
 
   // 獲取聲部列表
@@ -190,10 +200,17 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
             <Drawer.Body>
               <VStack gap={6} align="stretch">
                 {/* 頁面選擇區域 */}
-                <PartSelector totalPages={totalPages || 0} selectedPages={selectedPages} parts={parts} onPageToggle={handlePageToggle} isLoading={isLoadingPages} />
+                <PartSelector
+                  totalPages={totalPages || 0}
+                  selectedPages={selectedPages}
+                  parts={parts}
+                  onPageToggle={handlePageToggle}
+                  isLoading={isLoadingPages || isLoadingBuffer}
+                  pdfBuffer={pdfBuffer}
+                />
 
                 {/* 聲部列表 */}
-                <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} arrangementId={arrangementId} filePath={filePath || undefined} />
+                <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} pdfBuffer={pdfBuffer} />
 
                 {/* 創建新聲部 */}
                 <PartCreatorForm selectedPages={selectedPages} partLabel={partLabel} onPartLabelChange={setPartLabel} onCreatePart={handleCreatePart} isCreating={createPartMutation.isPending} />
