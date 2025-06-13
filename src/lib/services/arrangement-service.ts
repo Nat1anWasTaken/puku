@@ -85,33 +85,14 @@ export async function updateArrangementPreviewPath(arrangementId: string, previe
   }
 }
 
-export async function testSimpleInsert(ownerId: string): Promise<void> {
+export async function updateArrangementPreviewPath(arrangementId: string, previewPath: string): Promise<void> {
   const supabase = createClient();
 
-  console.log("Testing simple insert with ownerId:", ownerId);
-
-  const testData = {
-    title: "Test Arrangement",
-    composers: ["Test Composer"],
-    ensemble_type: "concert_band" as Database["public"]["Enums"]["ensemble_type"],
-    owner_id: ownerId,
-    file_path: null
-  };
-
-  console.log("Test data:", testData);
-
-  const { data, error } = await supabase.from("arrangements").insert(testData).select("id").single();
+  const { error } = await supabase.from("arrangements").update({ preview_path: previewPath }).eq("id", arrangementId);
 
   if (error) {
-    console.error("Test insert failed:", error);
-    throw error;
+    throw new Error(`Failed to update arrangement preview path: ${error.message}`);
   }
-
-  console.log("Test insert successful:", data);
-
-  // 清理測試資料
-  await supabase.from("arrangements").delete().eq("id", data.id);
-  console.log("Test data cleaned up");
 }
 
 export async function checkTableSchema(): Promise<void> {
