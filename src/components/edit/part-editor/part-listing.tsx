@@ -13,9 +13,11 @@ interface PartListingProps {
   parts: PartWithColor[];
   onDeletePart: (id: number) => void;
   isLoading?: boolean;
+  arrangementId?: string;
+  filePath?: string;
 }
 
-export function PartListing({ parts, onDeletePart, isLoading }: PartListingProps) {
+export function PartListing({ parts, onDeletePart, isLoading, arrangementId, filePath }: PartListingProps) {
   return (
     <Card.Root>
       <Card.Header>
@@ -29,7 +31,19 @@ export function PartListing({ parts, onDeletePart, isLoading }: PartListingProps
           {isLoading ? (
             <Text>載入聲部中...</Text>
           ) : parts.length > 0 ? (
-            parts.map((part) => <PartItem key={part.id} id={part.id} name={part.name} startPage={part.start_page} endPage={part.end_page} color={part.color} onDelete={onDeletePart} />)
+            parts.map((part) => (
+              <PartItem
+                key={part.id}
+                id={part.id}
+                name={part.name}
+                startPage={part.start_page}
+                endPage={part.end_page}
+                color={part.color}
+                onDelete={onDeletePart}
+                arrangementId={arrangementId}
+                filePath={filePath}
+              />
+            ))
           ) : (
             <Text color="fg.muted">尚未創建任何聲部</Text>
           )}

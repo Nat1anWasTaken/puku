@@ -1,8 +1,122 @@
 "use client";
 
+import { createClient } from "@/lib/supabase/client";
+
 export interface ThumbnailResult {
   thumbnailUrl: string | null;
   previewPath: string | null;
+}
+
+/**
+ * Generates a thumbnail for a specific page of a PDF
+ * @param pdfBuffer - The PDF file as ArrayBuffer
+ * @param pageNumber - The page number to generate thumbnail for (1-based)
+ * @returns Promise<string> - Returns the thumbnail as a data URL
+ * @throws {Error} When PDF processing or thumbnail generation fails
+ * @description Converts a specific page of a PDF to a canvas and returns as data URL
+ */
+export async function generatePageThumbnail(pdfBuffer: ArrayBuffer, pageNumber: number): Promise<string> {
+  // 確保只在客戶端運行
+  if (typeof window === "undefined") {
+    throw new Error("此功能只能在客戶端運行");
+  }
+
+  try {
+    // 動態導入 PDF.js 以避免服務器端渲染問題
+    const pdfjsLib = await import("pdfjs-dist");
+
+    // 設置 PDF.js worker（只在客戶端）
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+    }
+
+    // 載入 PDF 文件
+    const pdf = await pdfjsLib.getDocument({ data: pdfBuffer }).promise;
+
+    // 檢查頁碼是否有效
+    if (pageNumber < 1 || pageNumber > pdf.numPages) {
+      throw new Error(`無效的頁碼: ${pageNumber}. PDF 共有 ${pdf.numPages} 頁`);
+    }
+
+    // 獲取指定頁面
+    const page = await pdf.getPage(pageNumber);
+
+    // 設置縮圖尺寸
+    const viewport = page.getViewport({ scale: 0.5 });
+
+    // 創建 canvas
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("無法創建 canvas context");
+    }
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    // 渲染頁面到 canvas
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+
+    // 轉換為 data URL
+    return canvas.toDataURL("image/jpeg", 0.7);
+  } catch (error) {
+    console.error("生成頁面縮圖失敗:", error);
+    throw error;
+  }
+}
+
+/**
+ * Downloads a PDF file from Supabase storage and generates thumbnails for specified pages
+ * @param arrangementId - The arrangement ID
+ * @param filePath - The storage path of the PDF file
+ * @param pageNumbers - Array of page numbers to generate thumbnails for (1-based)
+ * @returns Promise<Map<number, string>> - Returns a map of page numbers to thumbnail data URLs
+ * @throws {Error} When PDF download or thumbnail generation fails
+ * @description Downloads PDF from storage and generates thumbnails for multiple pages
+ */
+export async function generatePageThumbnails(arrangementId: string, filePath: string, pageNumbers: number[]): Promise<Map<number, string>> {
+  // 確保只在客戶端運行
+  if (typeof window === "undefined") {
+    throw new Error("此功能只能在客戶端運行");
+  }
+
+  const supabase = createClient();
+
+  try {
+    // 從儲存空間下載 PDF 文件
+    const { data: pdfData, error: downloadError } = await supabase.storage.from("arrangements").download(filePath);
+
+    if (downloadError || !pdfData) {
+      throw new Error(`下載 PDF 文件失敗: ${downloadError?.message}`);
+    }
+
+    // 將 Blob 轉換為 ArrayBuffer
+    const arrayBuffer = await pdfData.arrayBuffer();
+
+    // 生成所有頁面的縮圖
+    const thumbnailMap = new Map<number, string>();
+
+    for (const pageNumber of pageNumbers) {
+      try {
+        const thumbnailDataUrl = await generatePageThumbnail(arrayBuffer, pageNumber);
+        thumbnailMap.set(pageNumber, thumbnailDataUrl);
+      } catch (error) {
+        console.error(`生成第 ${pageNumber} 頁縮圖失敗:`, error);
+        // 繼續處理其他頁面，不中斷整個流程
+      }
+    }
+
+    return thumbnailMap;
+  } catch (error) {
+    console.error("生成頁面縮圖失敗:", error);
+    throw error;
+  }
 }
 
 /**

@@ -193,7 +193,7 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
                 <PartSelector totalPages={totalPages || 0} selectedPages={selectedPages} parts={parts} onPageToggle={handlePageToggle} isLoading={isLoadingPages} />
 
                 {/* 聲部列表 */}
-                <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} />
+                <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} arrangementId={arrangementId} filePath={filePath || undefined} />
 
                 {/* 創建新聲部 */}
                 <PartCreatorForm selectedPages={selectedPages} partLabel={partLabel} onPartLabelChange={setPartLabel} onCreatePart={handleCreatePart} isCreating={createPartMutation.isPending} />
