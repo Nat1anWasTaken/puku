@@ -50,7 +50,7 @@ export function Navbar() {
                     <UserIcon className="w-4 h-4" />
                     <Text className="text-sm">{user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0)}</Text>
                   </Avatar.Fallback>
-                  <Avatar.Image src={user.user_metadata?.avatar_url ?? ""} />
+                  <Avatar.Image src={user.user_metadata?.avatar_url} />
                 </Avatar.Root>
               </Menu.Trigger>
               <Portal>
