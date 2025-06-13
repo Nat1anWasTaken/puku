@@ -3,7 +3,7 @@
 import { toaster } from "@/components/ui/toaster";
 import { createPart, CreatePartData, deletePart, getPartsByArrangementId, getPDFPageCount, Part } from "@/lib/services/part-service";
 import { downloadPDFBuffer } from "@/lib/services/thumbnail-client";
-import { Alert, CloseButton, Drawer, Portal, Text, VStack } from "@chakra-ui/react";
+import { Alert, Box, CloseButton, Drawer, Flex, HStack, Portal, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { PartCreatorForm } from "./part-creator-form";
@@ -199,36 +199,59 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
   }
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()}>
+    <Drawer.Root open={isOpen} onOpenChange={({ open }) => !open && onClose()} size="full">
       <Portal>
         <Drawer.Backdrop />
         <Drawer.Positioner>
-          <Drawer.Content maxW="4xl">
-            <Drawer.Header>
-              <Drawer.Title>聲部編輯器</Drawer.Title>
-              <Drawer.CloseTrigger asChild>
-                <CloseButton size="sm" />
-              </Drawer.CloseTrigger>
+          <Drawer.Content>
+            <Drawer.Header borderBottomWidth="1px" px={6} py={4}>
+              <HStack justify="space-between" w="full">
+                <Drawer.Title fontSize="xl" fontWeight="semibold">
+                  聲部編輯器
+                </Drawer.Title>
+                <Drawer.CloseTrigger asChild>
+                  <CloseButton size="md" />
+                </Drawer.CloseTrigger>
+              </HStack>
             </Drawer.Header>
-            <Drawer.Body>
-              <VStack gap={6} align="stretch">
-                {/* 頁面選擇區域 */}
-                <PartSelector
-                  totalPages={totalPages || 0}
-                  selectedPages={selectedPages}
-                  parts={parts}
-                  onPageToggle={handlePageToggle}
-                  onBulkPageToggle={handleBulkPageToggle}
-                  isLoading={isLoadingPages || isLoadingBuffer}
-                  pdfBuffer={pdfBuffer}
-                />
+            <Drawer.Body p={0} overflow="scroll">
+              <Flex h="full" direction={{ base: "column", lg: "row" }}>
+                {/* 左側/上方：頁面選擇器 */}
+                <Box
+                  flex="1"
+                  borderRightWidth={{ base: "0", lg: "1px" }}
+                  borderBottomWidth={{ base: "1px", lg: "0" }}
+                  borderColor="border.subtle"
+                  overflow="auto"
+                  p={6}
+                  minH={{ base: "50vh", lg: "auto" }}
+                >
+                  <PartSelector
+                    totalPages={totalPages || 0}
+                    selectedPages={selectedPages}
+                    parts={parts}
+                    onPageToggle={handlePageToggle}
+                    onBulkPageToggle={handleBulkPageToggle}
+                    isLoading={isLoadingPages || isLoadingBuffer}
+                    pdfBuffer={pdfBuffer}
+                  />
+                </Box>
 
-                {/* 聲部列表 */}
-                <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} pdfBuffer={pdfBuffer} />
+                {/* 右側/下方：聲部列表和創建器 */}
+                <Box w={{ base: "full", lg: "400px" }} h={{ lg: "full" }} flexShrink={0} overflow="auto" p={6}>
+                  <VStack gap={6} align="stretch" h="full">
+                    {/* 聲部列表 */}
+                    <Box flex={{ base: "unset", lg: 1 }} overflow={{ base: "unset", lg: "auto" }}>
+                      <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} pdfBuffer={pdfBuffer} h="full" />
+                    </Box>
 
-                {/* 創建新聲部 */}
-                <PartCreatorForm selectedPages={selectedPages} partLabel={partLabel} onPartLabelChange={setPartLabel} onCreatePart={handleCreatePart} isCreating={createPartMutation.isPending} />
-              </VStack>
+                    {/* 創建新聲部 */}
+                    <Box flexShrink={0} borderTopWidth="1px" pt={6}>
+                      <PartCreatorForm selectedPages={selectedPages} partLabel={partLabel} onPartLabelChange={setPartLabel} onCreatePart={handleCreatePart} isCreating={createPartMutation.isPending} />
+                    </Box>
+                  </VStack>
+                </Box>
+              </Flex>
             </Drawer.Body>
           </Drawer.Content>
         </Drawer.Positioner>

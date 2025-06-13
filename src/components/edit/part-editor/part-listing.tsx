@@ -1,7 +1,7 @@
 "use client";
 
 import { Part } from "@/lib/services/part-service";
-import { Card, Text, VStack } from "@chakra-ui/react";
+import { BoxProps, Card, Text, VStack } from "@chakra-ui/react";
 import { PartItem } from "./part-item";
 
 interface PartWithColor extends Part {
@@ -9,16 +9,16 @@ interface PartWithColor extends Part {
   name: string;
 }
 
-interface PartListingProps {
+interface PartListingProps extends BoxProps {
   parts: PartWithColor[];
   onDeletePart: (id: number) => void;
   isLoading?: boolean;
   pdfBuffer?: ArrayBuffer | null;
 }
 
-export function PartListing({ parts, onDeletePart, isLoading, pdfBuffer }: PartListingProps) {
+export function PartListing({ parts, onDeletePart, isLoading, pdfBuffer, ...boxProps }: PartListingProps) {
   return (
-    <Card.Root>
+    <Card.Root {...boxProps}>
       <Card.Header>
         <Card.Title>聲部</Card.Title>
         <Text fontSize="sm" color="fg.muted">
