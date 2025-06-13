@@ -10,7 +10,7 @@ interface PartSelectorProps {
   selectedPages: Set<number>;
   parts: Part[];
   onPageToggle: (pageNumber: number) => void;
-  onBulkPageToggle?: (pageNumbers: number[]) => void;
+  onBulkPageToggle?: (pageNumbers: number[], shouldSelect: boolean) => void;
   isLoading?: boolean;
   pdfBuffer?: ArrayBuffer | null;
 }
@@ -69,7 +69,7 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, o
     // 阻止默認行為，避免文字選擇等干擾
     event.preventDefault();
 
-    if (event.shiftKey && lastClickedPage !== null && lastClickedPage !== pageNumber) {
+    if (event.shiftKey && lastClickedPage !== null && lastClickedPage !== pageNumber && onBulkPageToggle) {
       // Shift + 點擊：選擇範圍（只有當點擊不同頁面時）
       const start = Math.min(lastClickedPage, pageNumber);
       const end = Math.max(lastClickedPage, pageNumber);
@@ -77,22 +77,11 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, o
       // 獲取範圍內的所有頁面
       const rangePages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
 
-      // 使用批量切換功能（如果可用），否則逐一切換
-      if (onBulkPageToggle) {
-        onBulkPageToggle(rangePages);
-      } else {
-        // 後備方案：確定範圍選擇的目標狀態（基於點擊的頁面是否已選中）
-        const shouldSelect = !selectedPages.has(pageNumber);
+      const selectedInRange = rangePages.filter((page) => selectedPages.has(page)).length;
+      const shouldSelect = selectedInRange < rangePages.length / 2; // 如果少於一半被選中，則選擇全部；否則取消全部
 
-        // 批量選擇/取消選擇範圍內的所有頁面
-        for (let i = start; i <= end; i++) {
-          const isCurrentlySelected = selectedPages.has(i);
-          // 只有當頁面的當前狀態與目標狀態不同時才切換
-          if (isCurrentlySelected !== shouldSelect) {
-            onPageToggle(i);
-          }
-        }
-      }
+      // 批量選擇/取消選擇範圍內的所有頁面
+      onBulkPageToggle(rangePages, shouldSelect);
 
       // 範圍選擇後，不更新 lastClickedPage，保持原來的起始點
       // 這樣用戶可以繼續從同一個起始點進行多次範圍選擇

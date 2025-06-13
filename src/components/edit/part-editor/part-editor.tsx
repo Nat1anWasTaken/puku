@@ -44,9 +44,7 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
   const { data: pdfBuffer, isLoading: isLoadingBuffer } = useQuery({
     queryKey: ["pdf-buffer", filePath],
     queryFn: () => (filePath ? downloadPDFBuffer(filePath) : Promise.resolve(null)),
-    enabled: !!filePath && isOpen,
-    staleTime: 10 * 60 * 1000, // 10 分鐘內不重新下載
-    gcTime: 15 * 60 * 1000 // 15 分鐘後清除緩存
+    enabled: !!filePath && isOpen
   });
 
   // 獲取聲部列表
@@ -114,21 +112,19 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     setSelectedPages(newSelected);
   };
 
-  // 處理批量頁面選擇
-  const handleBulkPageToggle = (pageNumbers: number[]) => {
-    const newSelected = new Set(selectedPages);
-
-    // 檢查這些頁面中是否有任何一個已經被選中
-    const hasAnySelected = pageNumbers.some((pageNum) => newSelected.has(pageNum));
-
-    // 如果有任何頁面已選中，則取消選擇所有頁面；否則選擇所有頁面
-    if (hasAnySelected) {
-      pageNumbers.forEach((pageNum) => newSelected.delete(pageNum));
-    } else {
-      pageNumbers.forEach((pageNum) => newSelected.add(pageNum));
-    }
-
-    setSelectedPages(newSelected);
+  // 處理批量頁面選擇（用於 shift 點擊）
+  const handleBulkPageToggle = (pageNumbers: number[], shouldSelect: boolean) => {
+    setSelectedPages((prev) => {
+      const newSelected = new Set(prev);
+      pageNumbers.forEach((pageNumber) => {
+        if (shouldSelect) {
+          newSelected.add(pageNumber);
+        } else {
+          newSelected.delete(pageNumber);
+        }
+      });
+      return newSelected;
+    });
   };
 
   // 處理創建聲部
