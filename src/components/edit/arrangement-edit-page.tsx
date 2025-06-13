@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Container, VStack, HStack, Button, Text, IconButton, Alert } from "@chakra-ui/react";
-import { ArrowLeft, Save, X, Trash2 } from "lucide-react";
-import { ArrangementWithDetails } from "@/lib/services/arrangement-service-server";
-import { useArrangementActions } from "@/hooks/use-arrangements";
+import { DeleteArrangementDialog } from "@/components/library/delete-arrangement-dialog";
 import { toaster } from "@/components/ui/toaster";
+import { useArrangementActions } from "@/hooks/use-arrangements";
+import { ArrangementWithDetails } from "@/lib/services/arrangement-service-server";
+import { Database } from "@/lib/supabase/types";
+import { Alert, Button, Container, HStack, IconButton, Text, VStack } from "@chakra-ui/react";
+import { ArrowLeft, Save, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { ArrangementEditForm } from "./arrangement-edit-form";
 import { AutoSaveIndicator } from "./auto-save-indicator";
-import { DeleteArrangementDialog } from "@/components/library/delete-arrangement-dialog";
-import { Database } from "@/lib/supabase/types";
 
 interface ArrangementEditPageProps {
   arrangement: ArrangementWithDetails;
