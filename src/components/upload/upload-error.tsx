@@ -11,7 +11,7 @@ export function UploadError({ error }: UploadErrorProps) {
     <Alert.Root status="error" borderRadius="md">
       <Alert.Indicator />
       <Grid templateColumns="1fr 5fr" gap={2}>
-        <Text fontWeight="bold">Upload failed</Text>
+        <Text fontWeight="bold">上傳失敗</Text>
         <Text>{error}</Text>
       </Grid>
     </Alert.Root>

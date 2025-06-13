@@ -18,25 +18,25 @@ export default async function ErrorPage({ params }: ErrorPageProps) {
 
     switch (error) {
       case "access_denied":
-        return "Access denied. You may have cancelled authorization or do not have permission.";
+        return "存取被拒絕。您可能已取消授權或沒有權限。";
       case "server_error":
-        return "A server error occurred. Please try again later.";
+        return "伺服器發生錯誤。請稍後再試。";
       case "temporarily_unavailable":
-        return "The service is temporarily unavailable. Please try again later.";
+        return "服務暫時無法使用。請稍後再試。";
       case "invalid_request":
-        return "Invalid request.";
+        return "無效的請求。";
       case "invalid_client":
-        return "Invalid client.";
+        return "無效的客戶端。";
       case "invalid_grant":
-        return "Invalid grant.";
+        return "無效的授權。";
       case "unauthorized_client":
-        return "Unauthorized client.";
+        return "未授權的客戶端。";
       case "unsupported_grant_type":
-        return "Unsupported grant type.";
+        return "不支援的授權類型。";
       case "invalid_scope":
-        return "Invalid scope.";
+        return "無效的範圍。";
       default:
-        return error ? `Unknown error occurred: ${error}` : "An unknown error occurred.";
+        return error ? `發生未知錯誤：${error}` : "發生未知錯誤。";
     }
   };
 
@@ -77,12 +77,12 @@ export default async function ErrorPage({ params }: ErrorPageProps) {
 
           <VStack gap={4} w="full">
             <Link href="/" w="full">
-              <Button w="full">Go Back to Home</Button>
+              <Button w="full">返回首頁</Button>
             </Link>
 
             <Link href="/auth/login" w="full">
               <Button w="full" variant="outline">
-                Login
+                登入
               </Button>
             </Link>
           </VStack>
@@ -91,7 +91,7 @@ export default async function ErrorPage({ params }: ErrorPageProps) {
           {process.env.NODE_ENV === "development" && (
             <Box w="full" bg="bg.muted" borderRadius="md" p={4}>
               <Heading size="sm" mb={2}>
-                Debug Info (Development Only)
+                除錯資訊（僅開發模式）
               </Heading>
               <VStack gap={1} align="stretch">
                 {Object.entries({ error, error_description, error_code }).map(([key, value]) => (

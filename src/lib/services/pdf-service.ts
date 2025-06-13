@@ -9,7 +9,7 @@ import { PDFDocument } from "pdf-lib";
  */
 export async function mergePDFFiles(files: File[]): Promise<Uint8Array> {
   if (files.length === 0) {
-    throw new Error("No PDF files provided");
+    throw new Error("未提供 PDF 檔案");
   }
 
   const mergedPdf = await PDFDocument.create();
@@ -24,7 +24,7 @@ export async function mergePDFFiles(files: File[]): Promise<Uint8Array> {
 
       copiedPages.forEach((page) => mergedPdf.addPage(page));
     } catch (error) {
-      throw new Error(`Failed to merge PDF files: ${file.name} - ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`合併 PDF 檔案失敗：${file.name} - ${error instanceof Error ? error.message : "未知錯誤"}`);
     }
   }
 

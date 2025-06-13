@@ -19,7 +19,7 @@ export async function uploadFileToStorage(bucketName: string, filePath: string, 
   });
 
   if (error) {
-    throw new Error(`File upload failed: ${error.message}`);
+    throw new Error(`檔案上傳失敗：${error.message}`);
   }
 
   return data.path;

@@ -22,13 +22,13 @@ export function EnsembleTypeSelect({ value, onChange }: EnsembleTypeSelectProps)
   return (
     <Box w="full">
       <Text fontWeight="bold" mb="2">
-        Ensemble Type
+        合奏類型
       </Text>
       <Select.Root collection={ensembleCollection} value={value ? [value] : []} onValueChange={(details) => onChange(details.value[0] || "")} size="md" required>
         <Select.HiddenSelect />
         <Select.Control>
           <Select.Trigger>
-            <Select.ValueText placeholder="Please select an ensemble type" />
+            <Select.ValueText placeholder="請選擇合奏類型" />
           </Select.Trigger>
           <Select.IndicatorGroup>
             <Select.Indicator />

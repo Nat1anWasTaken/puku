@@ -21,28 +21,28 @@ export function UploadForm({ user }: { user: User }) {
 
     if (!title.trim()) {
       toaster.error({
-        title: "Please enter a title"
+        title: "請輸入標題"
       });
       return;
     }
 
     if (composers.some((composer) => !composer.trim())) {
       toaster.error({
-        title: "Please fill in all composers"
+        title: "請填寫所有作曲家"
       });
       return;
     }
 
     if (!ensembleType) {
       toaster.error({
-        title: "Please select an ensemble type"
+        title: "請選擇合奏類型"
       });
       return;
     }
 
     if (files.length === 0) {
       toaster.error({
-        title: "Please select at least one PDF file"
+        title: "請選擇至少一個 PDF 檔案"
       });
       return;
     }
@@ -62,7 +62,7 @@ export function UploadForm({ user }: { user: User }) {
         setEnsembleType("");
         setFiles([]);
         toaster.success({
-          title: "Arrangement uploaded successfully!"
+          title: "編曲上傳成功！"
         });
       }
     } catch (err) {
