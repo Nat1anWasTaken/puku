@@ -24,7 +24,7 @@ function isProtectedRoute(pathname: string): boolean {
   return protectedRoutes.includes(pathname);
 }
 
-async function isUserAuthenticated(supabase: any): Promise<boolean> {
+async function isUserAuthenticated(supabase: ReturnType<typeof createClient>["supabase"]): Promise<boolean> {
   const {
     data: { user },
     error: authError
