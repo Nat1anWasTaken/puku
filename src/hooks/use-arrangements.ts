@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
-import { getUserArrangements, updateArrangement, deleteArrangement, ArrangementWithDetails, UpdateArrangementData } from "@/lib/services/arrangement-service";
 import { toaster } from "@/components/ui/toaster";
+import { ArrangementWithDetails, deleteArrangement, getUserArrangements, updateArrangement, UpdateArrangementData } from "@/lib/services/arrangement-service";
+import { useCallback, useEffect, useState } from "react";
 
 export function useArrangements(userId: string) {
   const [arrangements, setArrangements] = useState<ArrangementWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchArrangements = async () => {
+  const fetchArrangements = useCallback(async () => {
     if (!userId) return;
 
     try {
@@ -25,11 +25,11 @@ export function useArrangements(userId: string) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     fetchArrangements();
-  }, [userId]);
+  }, [fetchArrangements]);
 
   const updateArrangementInList = (arrangementId: string, updatedData: Partial<ArrangementWithDetails>) => {
     setArrangements((prev) => prev.map((arr) => (arr.id === arrangementId ? { ...arr, ...updatedData } : arr)));

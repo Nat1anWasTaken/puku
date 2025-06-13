@@ -176,6 +176,7 @@ export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPage
 
         {/* 編輯表單區域 */}
         <ArrangementEditForm
+          arrangement={arrangement}
           title={title}
           setTitle={setTitle}
           composers={composers}

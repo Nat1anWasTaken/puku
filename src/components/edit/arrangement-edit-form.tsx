@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { VStack, HStack, Button, Text, Input, IconButton, Select, Portal, createListCollection, Card, Fieldset, Alert } from "@chakra-ui/react";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
-import { Database, Constants } from "@/lib/supabase/types";
 import { ArrangementWithDetails } from "@/lib/services/arrangement-service-server";
+import { Constants, Database } from "@/lib/supabase/types";
+import { Alert, Button, Card, Fieldset, HStack, IconButton, Input, Portal, Select, Text, VStack, createListCollection } from "@chakra-ui/react";
+import { AlertCircle, Music, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { PartEditor } from "./part-editor";
 
 interface ArrangementEditFormProps {
   arrangement: ArrangementWithDetails;
@@ -25,20 +26,13 @@ const visibilityOptions = [
   { value: "public", label: "公開" }
 ];
 
-export function ArrangementEditForm({
-  title,
-  setTitle,
-  composers,
-  setComposers,
-  ensembleType,
-  setEnsembleType,
-  visibility,
-  setVisibility,
-  onInputChange
-}: Omit<ArrangementEditFormProps, "arrangement">) {
+export function ArrangementEditForm({ arrangement, title, setTitle, composers, setComposers, ensembleType, setEnsembleType, visibility, setVisibility, onInputChange }: ArrangementEditFormProps) {
   // 表單驗證狀態
   const [titleError, setTitleError] = useState<string | null>(null);
   const [composersError, setComposersError] = useState<string | null>(null);
+
+  // 聲部編輯器狀態
+  const [isPartEditorOpen, setIsPartEditorOpen] = useState(false);
 
   // 創建ensemble類型選項集合
   const ensembleCollection = useMemo(() => {
@@ -251,6 +245,29 @@ export function ArrangementEditForm({
         </Card.Body>
       </Card.Root>
 
+      {/* 聲部管理卡片 */}
+      <Card.Root>
+        <Card.Header>
+          <Card.Title>聲部管理</Card.Title>
+        </Card.Header>
+        <Card.Body>
+          <VStack gap={4} align="stretch">
+            <Text fontSize="sm" color="fg.muted">
+              管理編曲的聲部分配，將頁面分組為不同的聲部。
+            </Text>
+            <Button variant="outline" onClick={() => setIsPartEditorOpen(true)} disabled={!arrangement.file_path}>
+              <Music size={16} />
+              編輯聲部
+            </Button>
+            {!arrangement.file_path && (
+              <Text fontSize="sm" color="fg.muted">
+                需要先上傳 PDF 文件才能編輯聲部
+              </Text>
+            )}
+          </VStack>
+        </Card.Body>
+      </Card.Root>
+
       {/* 表單驗證提醒 */}
       {(titleError || composersError) && (
         <Alert.Root status="error" borderRadius="md">
@@ -262,6 +279,9 @@ export function ArrangementEditForm({
           </VStack>
         </Alert.Root>
       )}
+
+      {/* 聲部編輯器 */}
+      <PartEditor arrangementId={arrangement.id} filePath={arrangement.file_path} isOpen={isPartEditorOpen} onClose={() => setIsPartEditorOpen(false)} />
     </VStack>
   );
 }
