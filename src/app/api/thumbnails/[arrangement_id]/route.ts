@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { generateThumbnail } from "@/lib/services/thumbnail-service";
 import { updateArrangementPreviewPath } from "@/lib/services/arrangement-service";
+import { generateThumbnail } from "@/lib/services/thumbnail-service";
 import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     arrangement_id: string;
-  };
+  }>;
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { arrangement_id } = await params;
+    const { arrangement_id } = await context.params;
 
     if (!arrangement_id) {
       return NextResponse.json({ error: "缺少編曲 ID" }, { status: 400 });
