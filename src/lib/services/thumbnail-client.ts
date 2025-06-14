@@ -211,7 +211,7 @@ export async function getThumbnailForArrangement(arrangementId: string): Promise
  * @returns Promise<ThumbnailResult> - Returns thumbnail URL and preview path, or null values if not found
  * @description Makes a client-side API call to retrieve part thumbnail information. Returns null values on error or when thumbnail doesn't exist.
  */
-export async function getThumbnailForPart(partId: number): Promise<ThumbnailResult> {
+export async function getThumbnailForPart(partId: string): Promise<ThumbnailResult> {
   try {
     const response = await fetch(`/api/thumbnails/parts/${partId}`, {
       method: "GET",

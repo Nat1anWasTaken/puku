@@ -8,12 +8,12 @@ import { useState } from "react";
 import { DeletePartDialog } from "./delete-part-dialog";
 
 interface PartItemProps {
-  id: number;
+  id: string;
   name: string;
   startPage: number | null;
   endPage: number | null;
   color: string;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 export function PartItem({ id, name, startPage, endPage, color, onDelete }: PartItemProps) {

@@ -1,8 +1,8 @@
 import { toaster } from "@/components/ui/toaster";
 import { createArrangement, CreateArrangementData, updateArrangementFilePath, updateArrangementPreviewPath } from "@/lib/services/arrangement-service";
-import { mergePDFFiles } from "@/lib/services/pdf-service";
 import { generateArrangementFilePath, uploadFileToStorage } from "@/lib/services/storage-service";
 import { generateThumbnail } from "@/lib/services/thumbnail-service";
+import { mergePDFFiles } from "./pdf-client";
 
 const BUCKET_NAME = "arrangements";
 

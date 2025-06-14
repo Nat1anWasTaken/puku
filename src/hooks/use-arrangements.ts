@@ -53,10 +53,10 @@ export function useArrangementActions() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const editArrangement = async (arrangementId: string, userId: string, data: UpdateArrangementData): Promise<boolean> => {
+  const editArrangement = async (arrangementId: string, data: UpdateArrangementData): Promise<boolean> => {
     try {
       setIsUpdating(true);
-      await updateArrangement(arrangementId, userId, data);
+      await updateArrangement(arrangementId, data);
       toaster.success({
         title: "更新成功",
         description: "編曲資訊已成功更新"
@@ -74,10 +74,10 @@ export function useArrangementActions() {
     }
   };
 
-  const removeArrangement = async (arrangementId: string, userId: string): Promise<boolean> => {
+  const removeArrangement = async (arrangementId: string): Promise<boolean> => {
     try {
       setIsDeleting(true);
-      await deleteArrangement(arrangementId, userId);
+      await deleteArrangement(arrangementId);
       toaster.success({
         title: "刪除成功",
         description: "編曲已成功刪除"

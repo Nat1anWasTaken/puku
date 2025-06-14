@@ -160,7 +160,7 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
   };
 
   // 處理刪除聲部
-  const handleDeletePart = (partId: number) => {
+  const handleDeletePart = (partId: string) => {
     deletePartMutation.mutate(partId);
   };
 

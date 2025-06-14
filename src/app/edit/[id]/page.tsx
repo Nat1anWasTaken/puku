@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
-import { getArrangementByIdServer } from "@/lib/services/arrangement-service-server";
-import { redirect } from "next/navigation";
 import { ArrangementEditPage } from "@/components/edit/arrangement-edit-page";
+import { getArrangementByIdServer } from "@/lib/services/arrangement-service-server";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 interface EditPageProps {
   params: Promise<{ id: string }>;
@@ -30,5 +30,5 @@ export default async function EditPage({ params }: EditPageProps) {
     redirect("/library");
   }
 
-  return <ArrangementEditPage arrangement={arrangement} userId={user.id} />;
+  return <ArrangementEditPage arrangement={arrangement} />;
 }

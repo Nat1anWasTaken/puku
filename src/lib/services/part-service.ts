@@ -63,7 +63,7 @@ export async function createPart(data: CreatePartData): Promise<Part> {
  * @param data - 要更新的聲部數據
  * @throws {Error} 當更新聲部失敗時
  */
-export async function updatePart(partId: number, data: UpdatePartData): Promise<void> {
+export async function updatePart(partId: string, data: UpdatePartData): Promise<void> {
   const supabase = createClient();
 
   const updateData: TablesUpdate<"parts"> = {};
@@ -78,12 +78,22 @@ export async function updatePart(partId: number, data: UpdatePartData): Promise<
   }
 }
 
+export async function updatePartPreviewPath(partId: string, previewPath: string): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("parts").update({ preview_path: previewPath }).eq("id", partId);
+
+  if (error) {
+    throw new Error(`Failed to update part preview path: ${error.message}`);
+  }
+}
+
 /**
  * 刪除聲部
  * @param partId - 聲部ID
  * @throws {Error} 當刪除聲部失敗時
  */
-export async function deletePart(partId: number): Promise<void> {
+export async function deletePart(partId: string): Promise<void> {
   const supabase = createClient();
 
   const { error } = await supabase.from("parts").delete().eq("id", partId);

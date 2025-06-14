@@ -14,10 +14,9 @@ import { AutoSaveIndicator } from "./auto-save-indicator";
 
 interface ArrangementEditPageProps {
   arrangement: ArrangementWithDetails;
-  userId: string;
 }
 
-export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPageProps) {
+export function ArrangementEditPage({ arrangement }: ArrangementEditPageProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -34,10 +33,10 @@ export function ArrangementEditPage({ arrangement, userId }: ArrangementEditPage
     );
   }
 
-  return <ArrangementEditPageClient arrangement={arrangement} userId={userId} />;
+  return <ArrangementEditPageClient arrangement={arrangement} />;
 }
 
-function ArrangementEditPageClient({ arrangement, userId }: ArrangementEditPageProps) {
+function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
   const router = useRouter();
   const { editArrangement, removeArrangement, isUpdating, isDeleting } = useArrangementActions();
 
@@ -110,7 +109,7 @@ function ArrangementEditPageClient({ arrangement, userId }: ArrangementEditPageP
       return;
     }
 
-    const success = await editArrangement(arrangement.id, userId, {
+    const success = await editArrangement(arrangement.id, {
       title: title.trim(),
       composers: composers.filter((c) => c.trim().length > 0),
       ensemble_type: ensembleType as Database["public"]["Enums"]["ensemble_type"],
@@ -144,7 +143,7 @@ function ArrangementEditPageClient({ arrangement, userId }: ArrangementEditPageP
   };
 
   const handleDelete = async () => {
-    const success = await removeArrangement(arrangement.id, userId);
+    const success = await removeArrangement(arrangement.id);
     if (success) {
       router.push("/library");
     }

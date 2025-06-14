@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { Database, Tables, TablesInsert } from "@/lib/supabase/types";
 
+export type ArrangementWithDetails = Database["public"]["Tables"]["arrangements"]["Row"];
+
 export type CreateArrangementData = {
   title: string;
   composers: string[];

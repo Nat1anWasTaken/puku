@@ -11,7 +11,7 @@ interface PartWithColor extends Part {
 
 interface PartListingProps extends BoxProps {
   parts: PartWithColor[];
-  onDeletePart: (id: number) => void;
+  onDeletePart: (id: string) => void;
   isLoading?: boolean;
 }
 

@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Music } from "lucide-react";
 
 interface PartThumbnailImageProps {
-  partId: number;
+  partId: string;
   partLabel: string;
 }
 

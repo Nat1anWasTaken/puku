@@ -1,45 +1,61 @@
+"use server";
+
 import { PDFDocument } from "pdf-lib";
+import { createClient } from "../supabase/server";
 
 /**
- * Merges multiple PDF files into a single PDF document
- * @param files - Array of PDF File objects to merge
- * @returns Promise<Uint8Array> - Returns the merged PDF as a Uint8Array
- * @throws {Error} When no files are provided or PDF merging fails
- * @description Combines multiple PDF files in the order provided, copying all pages from each file
+ * Get a PDF buffer containing a specific page range
+ * @param originalPdfBuffer - The original PDF as ArrayBuffer or Uint8Array
+ * @param startPage - Start page (1-based)
+ * @param endPage - End page (1-based, inclusive)
+ * @returns Promise<Uint8Array> - A new PDF file as Uint8Array containing only the specified page range
+ * @throws {Error} If the page range is invalid or processing fails
  */
-export async function mergePDFFiles(files: File[]): Promise<Uint8Array> {
-  if (files.length === 0) {
-    throw new Error("未提供 PDF 檔案");
+export async function getPdfBufferByPageRange(originalPdfBuffer: ArrayBuffer | Uint8Array, startPage: number, endPage: number): Promise<Uint8Array> {
+  // 載入原始 PDF
+  const pdfDoc = await PDFDocument.load(originalPdfBuffer);
+
+  const totalPages = pdfDoc.getPageCount();
+
+  if (startPage < 1 || endPage < 1 || startPage > totalPages || endPage > totalPages || startPage > endPage) {
+    throw new Error(`無效的頁碼範圍: startPage=${startPage}, endPage=${endPage}, 總頁數=${totalPages}`);
   }
 
-  const mergedPdf = await PDFDocument.create();
+  // 建立新 PDF，只包含指定頁碼
+  const newPdfDoc = await PDFDocument.create();
+  const pageIndices = [];
+  for (let i = startPage - 1; i <= endPage - 1; i++) {
+    pageIndices.push(i);
+  }
+  const copiedPages = await newPdfDoc.copyPages(pdfDoc, pageIndices);
+  copiedPages.forEach((page) => newPdfDoc.addPage(page));
 
-  for (const file of files) {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
+  const newPdfBytes = await newPdfDoc.save();
+  return newPdfBytes;
+} /**
+ * Downloads a PDF file from Supabase storage and returns it as ArrayBuffer (Server-side)
+ * @param filePath - The storage path of the PDF file
+ * @returns Promise<ArrayBuffer> - Returns the PDF file as ArrayBuffer
+ * @throws {Error} When PDF download fails
+ * @description Downloads PDF from storage and returns as ArrayBuffer for server-side use
+ */
 
-      const pdf = await PDFDocument.load(arrayBuffer);
+export async function downloadPDFBufferServer(filePath: string): Promise<ArrayBuffer> {
+  const supabase = await createClient();
 
-      const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+  try {
+    // 從儲存空間下載 PDF 文件
+    const { data: pdfData, error: downloadError } = await supabase.storage.from("arrangements").download(filePath);
 
-      copiedPages.forEach((page) => mergedPdf.addPage(page));
-    } catch (error) {
-      throw new Error(`合併 PDF 檔案失敗：${file.name} - ${error instanceof Error ? error.message : "未知錯誤"}`);
+    if (downloadError || !pdfData) {
+      throw new Error(`下載 PDF 文件失敗: ${downloadError?.message}`);
     }
+
+    // 將 Blob 轉換為 ArrayBuffer
+    const arrayBuffer = await pdfData.arrayBuffer();
+    return arrayBuffer;
+  } catch (error) {
+    console.error("下載 PDF 文件失敗:", error);
+    throw error;
   }
-
-  const pdfBytes = await mergedPdf.save();
-  return pdfBytes;
-}
-
-/**
- * Creates a File object from byte array data
- * @param bytes - The file data as Uint8Array
- * @param filename - The name for the created file
- * @param mimeType - The MIME type for the file (defaults to "application/pdf")
- * @returns File - Returns a new File object with the provided data
- * @description Utility function to create File objects from byte data, commonly used for PDF files
- */
-export function createFileFromBytes(bytes: Uint8Array, filename: string, mimeType: string = "application/pdf"): File {
-  return new File([bytes], filename, { type: mimeType });
 }
