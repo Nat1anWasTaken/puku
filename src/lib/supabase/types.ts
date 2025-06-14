@@ -44,7 +44,7 @@ export type Database = {
           arrangement_id: string | null;
           created_at: string;
           end_page: number | null;
-          id: number;
+          id: string;
           label: string;
           start_page: number | null;
         };
@@ -52,7 +52,7 @@ export type Database = {
           arrangement_id?: string | null;
           created_at?: string;
           end_page?: number | null;
-          id?: number;
+          id?: string;
           label: string;
           start_page?: number | null;
         };
@@ -60,7 +60,7 @@ export type Database = {
           arrangement_id?: string | null;
           created_at?: string;
           end_page?: number | null;
-          id?: number;
+          id?: string;
           label?: string;
           start_page?: number | null;
         };
