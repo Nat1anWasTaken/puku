@@ -46,6 +46,7 @@ export type Database = {
           end_page: number | null;
           id: string;
           label: string;
+          preview_path: string | null;
           start_page: number | null;
         };
         Insert: {
@@ -54,6 +55,7 @@ export type Database = {
           end_page?: number | null;
           id?: string;
           label: string;
+          preview_path?: string | null;
           start_page?: number | null;
         };
         Update: {
@@ -62,6 +64,7 @@ export type Database = {
           end_page?: number | null;
           id?: string;
           label?: string;
+          preview_path?: string | null;
           start_page?: number | null;
         };
         Relationships: [
