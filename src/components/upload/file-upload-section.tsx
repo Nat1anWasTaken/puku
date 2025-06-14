@@ -9,7 +9,7 @@ export function FileUploadSection({ onFileChange }: FileUploadSectionProps) {
   return (
     <Box w="full">
       <Text fontWeight="bold" mb="2">
-        Arrangement Files
+        編曲檔案
       </Text>
       <FileUpload.Root
         maxFiles={10}
@@ -26,9 +26,9 @@ export function FileUploadSection({ onFileChange }: FileUploadSectionProps) {
             <Upload />
           </Icon>
           <FileUpload.DropzoneContent>
-            <Box>Click or drag files here to upload</Box>
+            <Box>點擊或拖曳檔案上傳</Box>
             <Box color="fg.muted" fontSize="sm">
-              Only PDF files are supported (up to 10 files)
+              僅支援 PDF 檔案 (最多 10 個檔案)
             </Box>
           </FileUpload.DropzoneContent>
         </FileUpload.Dropzone>

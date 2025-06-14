@@ -9,9 +9,9 @@ export function TitleInput({ value, onChange }: TitleInputProps) {
   return (
     <Box w="full">
       <Text fontWeight="bold" mb="2">
-        Arrangement Title
+        編曲標題
       </Text>
-      <Input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Please enter the arrangement title" required size="md" />
+      <Input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder="請輸入編曲標題" required size="md" />
     </Box>
   );
 }

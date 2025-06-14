@@ -26,12 +26,12 @@ export function ComposersInput({ composers, onChange }: ComposersInputProps) {
   return (
     <Box w="full">
       <Text fontWeight="bold" mb="2">
-        Composer
+        作曲家
       </Text>
       <VStack gap="3" w="full">
         {composers.map((composer, index) => (
           <HStack key={index} w="full">
-            <Input type="text" value={composer} onChange={(e) => updateComposer(index, e.target.value)} placeholder={`Composer ${index + 1}`} required size="md" />
+            <Input type="text" value={composer} onChange={(e) => updateComposer(index, e.target.value)} placeholder={`作曲家 ${index + 1}`} required size="md" />
             {composers.length > 1 && (
               <IconButton aria-label="Remove Composer" onClick={() => removeComposer(index)} colorScheme="red" variant="outline" size="sm">
                 <Trash2 size={16} />

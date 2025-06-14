@@ -74,10 +74,10 @@ export function UploadForm({ user }: { user: User }) {
     <Card.Root w="2xl">
       <Card.Header>
         <Center>
-          <Heading>Upload Arrangement</Heading>
+          <Heading>上傳編曲</Heading>
         </Center>
         <Text color="fg.subtle" textAlign="center">
-          Share your musical arrangement
+          分享你的音樂編曲
         </Text>
       </Card.Header>
       <Card.Body>
@@ -94,8 +94,8 @@ export function UploadForm({ user }: { user: User }) {
 
           <UploadError error={error} />
 
-          <Button w="full" type="submit" colorScheme="blue" loading={isLoading} loadingText="Uploading" size="lg">
-            Upload Arrangement
+          <Button w="full" type="submit" colorScheme="blue" loading={isLoading} loadingText="上傳中" size="lg">
+            上傳編曲
           </Button>
         </VStack>
       </Card.Body>
