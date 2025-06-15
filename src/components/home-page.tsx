@@ -5,7 +5,23 @@ import { ArrangementCard } from "./arrangement-card";
 export async function HomePage() {
   const supabase = await createClient();
 
-  const { data: arrangements } = await supabase.from("arrangements").select("*");
+  let userId = "";
+
+  const userResult = await supabase.auth.getUser?.();
+
+  if (userResult?.data?.user?.id) {
+    userId = userResult.data.user.id;
+  }
+
+  let query = supabase.from("arrangements").select("*");
+
+  if (userId) {
+    query = query.or('visibility.eq.public,and(visibility.in.("unlisted","private"),owner_id.eq.' + userId + ")");
+  } else {
+    query = query.eq("visibility", "public");
+  }
+
+  const { data: arrangements } = await query;
 
   return (
     <VStack p={8} gap={4} align="start" w="full">
