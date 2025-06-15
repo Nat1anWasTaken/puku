@@ -53,7 +53,7 @@ export function usePartDownload({ arrangement, part }: UsePartDownloadProps) {
     } finally {
       setIsDownloading(false);
     }
-  }, [pdfBuffer, part]);
+  }, [pdfBuffer, part, arrangement.title]);
 
   return {
     downloadPart,
