@@ -1,4 +1,4 @@
-import { updatePartPreviewPath } from "@/lib/services/part-service";
+import { updatePartPreviewPath } from "@/lib/services/part-service-server";
 import { downloadPDFBufferServer } from "@/lib/services/pdf-service";
 import { generateAndUploadPartThumbnail } from "@/lib/services/thumbnail-service";
 import { createClient } from "@/lib/supabase/server";
@@ -18,18 +18,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "缺少聲部 ID" }, { status: 400 });
     }
 
-    // 驗證用戶權限
     const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "用戶未登入" }, { status: 401 });
-    }
-
-    // 以 uuid 查詢聲部資訊和相關編曲資訊
     const { data: part, error: fetchError } = await supabase
       .from("parts")
       .select(
@@ -56,11 +46,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // 類型斷言以修復 TypeScript 錯誤 - arrangements 是數組，取第一個元素
     const arrangement = part.arrangements as unknown as { id: string; file_path: string; owner_id: string };
-
-    // 檢查用戶權限
-    if (arrangement.owner_id !== user.id) {
-      return NextResponse.json({ error: "沒有權限存取此聲部" }, { status: 403 });
-    }
 
     // 檢查是否有 PDF 文件
     if (!arrangement.file_path) {

@@ -1,4 +1,4 @@
-import { updateArrangementPreviewPath } from "@/lib/services/arrangement-service";
+import { updateArrangementPreviewPathWithServiceRole } from "@/lib/services/arrangement-service-server";
 import { generateThumbnail } from "@/lib/services/thumbnail-service";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,26 +17,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "缺少編曲 ID" }, { status: 400 });
     }
 
-    // 驗證用戶權限
     const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "用戶未登入" }, { status: 401 });
-    }
-
-    // 獲取編曲資訊
     const { data: arrangement, error: fetchError } = await supabase.from("arrangements").select("id, file_path, preview_path, owner_id").eq("id", arrangement_id).single();
 
     if (fetchError || !arrangement) {
       return NextResponse.json({ error: "找不到編曲" }, { status: 404 });
-    }
-
-    if (arrangement.owner_id !== user.id) {
-      return NextResponse.json({ error: "沒有權限存取此編曲" }, { status: 403 });
     }
 
     // 如果已經有縮圖，返回簽名 URL
@@ -60,7 +46,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         const { previewPath } = await generateThumbnail(arrangement_id, arrangement.file_path);
 
         // 更新編曲記錄
-        await updateArrangementPreviewPath(arrangement_id, previewPath);
+        await updateArrangementPreviewPathWithServiceRole(arrangement_id, previewPath);
 
         // 返回新生成的縮圖簽名 URL
         const { data, error } = await supabase.storage.from("thumbnails").createSignedUrl(previewPath, 60 * 60); // 1 hour expiry
