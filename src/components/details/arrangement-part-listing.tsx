@@ -1,10 +1,10 @@
 "use client";
 
-import { getPartsByArrangementId } from "@/lib/services/part-service";
+import { getAvailableCategoriesByArrangementId, getPartsByArrangementId } from "@/lib/services/part-service";
 import { createClient } from "@/lib/supabase/client";
 import { VStack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PartCategorySection } from "./part-category-section";
 import { PartFilters } from "./part-filters";
 
@@ -37,6 +37,13 @@ export function ArrangementPartListing({ arrangementId }: ArrangementPartListing
     enabled: !!arrangementId
   });
 
+  // 獲取可用分類
+  const { data: availableCategories = [] } = useQuery({
+    queryKey: ["arrangement-categories", arrangementId],
+    queryFn: () => getAvailableCategoriesByArrangementId(arrangementId),
+    enabled: !!arrangementId
+  });
+
   // 篩選和排序聲部
   const filteredAndSortedParts = parts
     .filter((part) => part.label.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -49,6 +56,30 @@ export function ArrangementPartListing({ arrangementId }: ArrangementPartListing
       }
       return sortOrder === "asc" ? comparison : -comparison;
     });
+
+  // 按分類分組聲部
+  const partsByCategory = useMemo(() => {
+    const grouped: Record<string, typeof filteredAndSortedParts> = {};
+
+    // 初始化所有分類
+    availableCategories.forEach((category) => {
+      grouped[category] = [];
+    });
+
+    // 初始化未分類
+    grouped["未分類"] = [];
+
+    // 分組聲部
+    filteredAndSortedParts.forEach((part) => {
+      const category = part.category || "未分類";
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(part);
+    });
+
+    return grouped;
+  }, [filteredAndSortedParts, availableCategories]);
 
   return (
     <VStack gap={6} align="stretch" mt={8}>
@@ -64,8 +95,17 @@ export function ArrangementPartListing({ arrangementId }: ArrangementPartListing
         filteredCount={filteredAndSortedParts.length}
       />
 
-      {/* 未分類聲部區段 */}
-      <PartCategorySection title="未分類" parts={filteredAndSortedParts} isLoading={isLoading} arrangement={arrangement} />
+      {/* 按分類顯示聲部 */}
+      {availableCategories.map((category) => {
+        const categoryParts = partsByCategory[category] || [];
+        // 只顯示有聲部的分類
+        if (categoryParts.length === 0) return null;
+
+        return <PartCategorySection key={category} title={category} parts={categoryParts} isLoading={isLoading} arrangement={arrangement} />;
+      })}
+
+      {/* 未分類聲部區段 - 只在有未分類聲部時顯示 */}
+      {(partsByCategory["未分類"]?.length > 0 || isLoading) && <PartCategorySection title="未分類" parts={partsByCategory["未分類"] || []} isLoading={isLoading} arrangement={arrangement} />}
     </VStack>
   );
 }
