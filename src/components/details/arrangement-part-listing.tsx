@@ -1,6 +1,7 @@
 "use client";
 
 import { getPartsByArrangementId } from "@/lib/services/part-service";
+import { createClient } from "@/lib/supabase/client";
 import { VStack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -15,6 +16,19 @@ export function ArrangementPartListing({ arrangementId }: ArrangementPartListing
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "created_at">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // 獲取編曲資料（包含 file_path）
+  const { data: arrangement } = useQuery({
+    queryKey: ["arrangement", arrangementId],
+    queryFn: async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.from("arrangements").select("*").eq("id", arrangementId).single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!arrangementId
+  });
 
   // 獲取聲部資料
   const { data: parts = [], isLoading } = useQuery({
@@ -51,7 +65,7 @@ export function ArrangementPartListing({ arrangementId }: ArrangementPartListing
       />
 
       {/* 未分類聲部區段 */}
-      <PartCategorySection title="未分類" parts={filteredAndSortedParts} isLoading={isLoading} />
+      <PartCategorySection title="未分類" parts={filteredAndSortedParts} isLoading={isLoading} arrangement={arrangement} />
     </VStack>
   );
 }

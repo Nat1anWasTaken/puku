@@ -5,14 +5,16 @@ import { Card, Grid, Skeleton, Text, VStack } from "@chakra-ui/react";
 import { PartCard } from "./part-card";
 
 type Part = Tables<"parts">;
+type Arrangement = Tables<"arrangements">;
 
 interface PartCategorySectionProps {
   title: string;
   parts: Part[];
-  isLoading?: boolean;
+  isLoading: boolean;
+  arrangement: Arrangement;
 }
 
-export function PartCategorySection({ title, parts, isLoading }: PartCategorySectionProps) {
+export function PartCategorySection({ title, parts, isLoading, arrangement }: PartCategorySectionProps) {
   if (isLoading) {
     return (
       <Card.Root>
@@ -39,10 +41,10 @@ export function PartCategorySection({ title, parts, isLoading }: PartCategorySec
         <Card.Body>
           <VStack gap={4} py={8}>
             <Text color="fg.muted" fontSize="lg">
-              此分類中沒有聲部
+              沒有符合條件的聲部
             </Text>
             <Text color="fg.muted" fontSize="sm">
-              聲部將在編輯器中創建後顯示在這裡
+              聲部將在編輯器中創建後顯示在這裡。
             </Text>
           </VStack>
         </Card.Body>
@@ -60,7 +62,7 @@ export function PartCategorySection({ title, parts, isLoading }: PartCategorySec
       <Card.Body>
         <Grid templateColumns="repeat(auto-fill, minmax(250px, 1fr))" gap={4}>
           {parts.map((part) => (
-            <PartCard key={part.id} part={part} />
+            <PartCard key={part.id} arrangement={arrangement} part={part} />
           ))}
         </Grid>
       </Card.Body>
