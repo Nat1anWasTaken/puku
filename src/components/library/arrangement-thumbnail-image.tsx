@@ -1,25 +1,26 @@
 "use client";
 
-import { getThumbnailForPart } from "@/lib/services/thumbnail-client";
+import { getThumbnailForArrangement } from "@/lib/services/thumbnail-client";
 import { Box, BoxProps, Flex, Icon, Image, Text } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { Music } from "lucide-react";
 
-interface PartThumbnailImageProps extends Omit<BoxProps, "title" | "direction"> {
+interface ArrangementThumbnailImageProps extends Omit<BoxProps, "title" | "direction"> {
   title: string;
-  partId?: string;
+  filePath: string | null;
+  arrangementId?: string;
 }
 
-export function PartThumbnailImage({ title, partId, ...styleProps }: PartThumbnailImageProps) {
+export function ArrangementThumbnailImage({ title, filePath, arrangementId, ...styleProps }: ArrangementThumbnailImageProps) {
   const { data: thumbnailResult, isLoading } = useQuery({
-    queryKey: ["part-thumbnail", partId],
+    queryKey: ["thumbnail", arrangementId],
     queryFn: async () => {
-      if (!partId) return null;
-      return await getThumbnailForPart(partId);
+      if (!arrangementId) return null;
+      return await getThumbnailForArrangement(arrangementId);
     },
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
-    enabled: !!partId
+    enabled: !!arrangementId
   });
 
   if (isLoading) {
@@ -37,20 +38,20 @@ export function PartThumbnailImage({ title, partId, ...styleProps }: PartThumbna
     );
   }
 
-  if (!partId && !thumbnailResult?.thumbnailUrl) {
+  if (!filePath && !thumbnailResult?.thumbnailUrl) {
     <Box {...styleProps}>
       <Flex bg="bg.muted" align="center" justify="center" direction="column" gap={2}>
         <Icon size="xl" color="fg.muted">
           <Music />
         </Icon>
         <Text color="fg.muted" fontSize="sm">
-          {partId ? "生成縮圖中..." : "聲部不存在"}
+          {filePath ? "生成縮圖中..." : "檔案不存在"}
         </Text>
       </Flex>
     </Box>;
   }
 
   if (thumbnailResult?.thumbnailUrl) {
-    return <Image src={thumbnailResult.thumbnailUrl} alt={title} {...styleProps} w="full" h="full" objectFit="cover" />;
+    return <Image src={thumbnailResult.thumbnailUrl} alt={title} w="full" h="full" objectFit="cover" {...styleProps} />;
   }
 }

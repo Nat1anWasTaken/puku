@@ -1,9 +1,9 @@
 "use client";
 
 import { snakeCaseToTitleCase } from "@/lib/utils";
-import { Box, Card, Heading, HStack, IconButton, Link, Text, VStack, Badge } from "@chakra-ui/react";
+import { Badge, Box, Card, Heading, HStack, IconButton, Link, Text, VStack } from "@chakra-ui/react";
 import { Edit, Eye } from "lucide-react";
-import { ThumbnailImage } from "./thumbnail-image";
+import { ArrangementThumbnailImage } from "./arrangement-thumbnail-image";
 
 interface Arrangement {
   id: string;
@@ -25,7 +25,7 @@ export function LibraryArrangementCard({ arrangement, onView }: LibraryArrangeme
   return (
     <Card.Root overflow="hidden" h="full">
       <Box position="relative">
-        <ThumbnailImage title={arrangement.title} filePath={arrangement.file_path} arrangementId={arrangement.id} />
+        <ArrangementThumbnailImage title={arrangement.title} filePath={arrangement.file_path} arrangementId={arrangement.id} w="full" h="200px" />
 
         {/* 可見性標籤 */}
         <Badge position="absolute" top="2" left="2" colorScheme={arrangement.visibility === "public" ? "green" : "gray"} size="sm">
