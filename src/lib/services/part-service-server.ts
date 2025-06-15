@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { Database } from "@/lib/supabase/types";
 
 export type Part = Database["public"]["Tables"]["parts"]["Row"];
@@ -19,4 +19,14 @@ export async function getPartsByArrangementIdServer(arrangementId: string): Prom
   }
 
   return parts || [];
+}
+
+export async function updatePartPreviewPath(partId: string, previewPath: string): Promise<void> {
+  const supabase = await createServiceRoleClient();
+
+  const { error } = await supabase.from("parts").update({ preview_path: previewPath }).eq("id", partId);
+
+  if (error) {
+    throw new Error(`Failed to update part preview path: ${error.message}`);
+  }
 }

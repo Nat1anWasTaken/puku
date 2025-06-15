@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { Database } from "@/lib/supabase/types";
 
 export type ArrangementWithDetails = Database["public"]["Tables"]["arrangements"]["Row"];
@@ -44,4 +44,21 @@ export async function getUserArrangementsServer(userId: string): Promise<Arrange
   }
 
   return arrangements || [];
+}
+
+/**
+ * 伺服器端版本：更新指定樂曲的預覽路徑
+ * @param arrangementId - 樂曲ID
+ * @param previewPath - 新的預覽檔案路徑
+ * @returns Promise<void> - 無返回值，若更新失敗則拋出錯誤
+ * @throws {Error} 當更新預覽路徑失敗時
+ */
+export async function updateArrangementPreviewPathWithServiceRole(arrangementId: string, previewPath: string): Promise<void> {
+  const supabase = createServiceRoleClient();
+
+  const { error } = await supabase.from("arrangements").update({ preview_path: previewPath }).eq("id", arrangementId);
+
+  if (error) {
+    throw new Error(`Failed to update arrangement preview path: ${error.message}`);
+  }
 }

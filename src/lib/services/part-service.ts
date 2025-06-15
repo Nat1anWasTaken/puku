@@ -78,16 +78,6 @@ export async function updatePart(partId: string, data: UpdatePartData): Promise<
   }
 }
 
-export async function updatePartPreviewPath(partId: string, previewPath: string): Promise<void> {
-  const supabase = createClient();
-
-  const { error } = await supabase.from("parts").update({ preview_path: previewPath }).eq("id", partId);
-
-  if (error) {
-    throw new Error(`Failed to update part preview path: ${error.message}`);
-  }
-}
-
 /**
  * 刪除聲部
  * @param partId - 聲部ID

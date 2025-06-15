@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import pdf from "pdf-thumbnail";
 import { getPdfBufferByPageRange } from "./pdf-service";
 
@@ -49,7 +49,7 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
  * @description Downloads PDF from storage, generates thumbnail from first page, and uploads to thumbnails bucket
  */
 export async function generateThumbnail(arrangementId: string, filePath: string): Promise<{ thumbnailBuffer: Buffer; previewPath: string }> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   // 從儲存空間下載 PDF 文件
   const { data: pdfData, error: downloadError } = await supabase.storage.from("arrangements").download(filePath);
@@ -95,7 +95,7 @@ export async function generateThumbnail(arrangementId: string, filePath: string)
  * @description Generates thumbnail from the start page of a part and uploads to thumbnails bucket
  */
 export async function generateAndUploadPartThumbnail(partId: string, pdfBuffer: ArrayBuffer, startPage: number): Promise<{ thumbnailBuffer: Buffer; previewPath: string }> {
-  const supabase = await createClient();
+  const supabase = await createServiceRoleClient();
 
   const singlePagePdfBuffer = await getPdfBufferByPageRange(pdfBuffer, startPage, startPage);
 
