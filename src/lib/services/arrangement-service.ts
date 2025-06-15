@@ -22,9 +22,6 @@ export type UpdateArrangementData = {
 export async function createArrangement(data: CreateArrangementData): Promise<string> {
   const supabase = createClient();
 
-  // Debug: 記錄輸入資料
-  console.log("createArrangement called with data:", data);
-
   // 驗證必要欄位
   if (!data.title || !data.ownerId) {
     throw new Error("標題和擁有者 ID 為必填項目");
@@ -44,8 +41,6 @@ export async function createArrangement(data: CreateArrangementData): Promise<st
     owner_id: data.ownerId,
     file_path: null // Initialize as null, will be updated later
   };
-
-  console.log("Inserting arrangement data:", arrangementData);
 
   // 嘗試更明確的插入方式
   const { data: arrangement, error } = await supabase
@@ -72,7 +67,6 @@ export async function createArrangement(data: CreateArrangementData): Promise<st
     throw new Error(`Failed to create arrangement: ${error.message}`);
   }
 
-  console.log("Arrangement created successfully:", arrangement);
   return arrangement.id;
 }
 
@@ -125,28 +119,4 @@ export async function getUserArrangements(ownerId: string): Promise<Tables<"arra
   }
 
   return data;
-}
-
-export async function checkTableSchema(): Promise<void> {
-  const supabase = createClient();
-
-  console.log("Checking arrangements table schema...");
-
-  // 嘗試查詢表的結構信息
-  const { error } = await supabase.from("arrangements").select("*").limit(0);
-
-  if (error) {
-    console.error("Schema check error:", error);
-  } else {
-    console.log("Schema check successful - table exists");
-  }
-
-  // 嘗試一個最小的查詢來看看表是否可訪問
-  const { data: countData, error: countError } = await supabase.from("arrangements").select("*", { count: "exact", head: true });
-
-  if (countError) {
-    console.error("Count query error:", countError);
-  } else {
-    console.log("Table accessible, current record count:", countData);
-  }
 }

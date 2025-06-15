@@ -57,8 +57,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // 類型斷言以修復 TypeScript 錯誤 - arrangements 是數組，取第一個元素
     const arrangement = part.arrangements as unknown as { id: string; file_path: string; owner_id: string };
 
-    console.log(arrangement);
-
     // 檢查用戶權限
     if (arrangement.owner_id !== user.id) {
       return NextResponse.json({ error: "沒有權限存取此聲部" }, { status: 403 });
@@ -83,10 +81,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           thumbnailUrl: data.signedUrl,
           previewPath: part.preview_path
         });
-      } catch {
-        // 文件不存在，繼續生成新的縮圖
-        console.log("縮圖文件不存在，將生成新的縮圖");
-      }
+      } catch {}
     }
 
     // 生成新的縮圖
