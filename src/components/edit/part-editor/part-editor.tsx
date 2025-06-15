@@ -1,7 +1,7 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { createPart, CreatePartData, deletePart, getPartsByArrangementId, getPDFPageCount, Part } from "@/lib/services/part-service";
+import { createPart, CreatePartData, deletePart, getAvailableCategoriesByArrangementId, getPartsByArrangementId, getPDFPageCount, Part } from "@/lib/services/part-service";
 import { downloadPDFBuffer } from "@/lib/services/thumbnail-client";
 import { Alert, Box, CloseButton, Drawer, Flex, HStack, Portal, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,8 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
   // 狀態管理
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [partLabel, setPartLabel] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [temporaryCategories, setTemporaryCategories] = useState<string[]>([]);
 
   // 獲取 PDF 頁數
   const { data: totalPages, isLoading: isLoadingPages } = useQuery({
@@ -54,6 +56,19 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     enabled: isOpen
   });
 
+  // 獲取可用分類
+  const { data: availableCategories = [] } = useQuery({
+    queryKey: ["categories", arrangementId],
+    queryFn: () => getAvailableCategoriesByArrangementId(arrangementId),
+    enabled: isOpen
+  });
+
+  // 合併現有分類和臨時分類
+  const allAvailableCategories = useMemo(() => {
+    const combined = [...availableCategories, ...temporaryCategories];
+    return Array.from(new Set(combined)).sort();
+  }, [availableCategories, temporaryCategories]);
+
   // 為聲部添加顏色和名稱
   const partsWithColor = useMemo<PartWithColor[]>(() => {
     return parts.map((part, index) => ({
@@ -68,8 +83,10 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     mutationFn: createPart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["parts", arrangementId] });
+      queryClient.invalidateQueries({ queryKey: ["categories", arrangementId] });
       setSelectedPages(new Set());
       setPartLabel("");
+      setCategory("");
       toaster.success({
         title: "聲部創建成功",
         description: "新聲部已成功創建"
@@ -88,6 +105,7 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     mutationFn: deletePart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["parts", arrangementId] });
+      queryClient.invalidateQueries({ queryKey: ["categories", arrangementId] });
       toaster.success({
         title: "聲部刪除成功",
         description: "聲部已成功刪除"
@@ -153,10 +171,18 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
       arrangementId,
       startPage,
       endPage,
-      label: partLabel.trim()
+      label: partLabel.trim(),
+      category: category.trim() || undefined
     };
 
     createPartMutation.mutate(createData);
+  };
+
+  // 處理創建新分類
+  const handleCreateCategory = (newCategory: string) => {
+    if (newCategory.trim() && !allAvailableCategories.includes(newCategory.trim())) {
+      setTemporaryCategories((prev) => [...prev, newCategory.trim()]);
+    }
   };
 
   // 處理刪除聲部
@@ -169,6 +195,8 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     if (!isOpen) {
       setSelectedPages(new Set());
       setPartLabel("");
+      setCategory("");
+      setTemporaryCategories([]);
     }
   }, [isOpen]);
 
@@ -247,7 +275,17 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
 
                     {/* 創建新聲部 */}
                     <Box flexShrink={0} borderTopWidth="1px" pt={6}>
-                      <PartCreatorForm selectedPages={selectedPages} partLabel={partLabel} onPartLabelChange={setPartLabel} onCreatePart={handleCreatePart} isCreating={createPartMutation.isPending} />
+                      <PartCreatorForm
+                        selectedPages={selectedPages}
+                        partLabel={partLabel}
+                        onPartLabelChange={setPartLabel}
+                        category={category}
+                        onCategoryChange={setCategory}
+                        availableCategories={allAvailableCategories}
+                        onCreatePart={handleCreatePart}
+                        onCreateCategory={handleCreateCategory}
+                        isCreating={createPartMutation.isPending}
+                      />
                     </Box>
                   </VStack>
                 </Box>

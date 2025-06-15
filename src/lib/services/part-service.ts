@@ -7,6 +7,7 @@ export type CreatePartData = {
   startPage: number;
   endPage: number;
   label: string;
+  category?: string;
 };
 
 export type UpdatePartData = {
@@ -33,6 +34,26 @@ export async function getPartsByArrangementId(arrangementId: string): Promise<Pa
 }
 
 /**
+ * 獲取特定編曲的所有可用分類
+ * @param arrangementId - 編曲ID
+ * @returns Promise<string[]> - 返回分類列表，去重並排序
+ * @throws {Error} 當獲取分類失敗時
+ */
+export async function getAvailableCategoriesByArrangementId(arrangementId: string): Promise<string[]> {
+  const supabase = createClient();
+
+  const { data: parts, error } = await supabase.from("parts").select("category").eq("arrangement_id", arrangementId).not("category", "is", null);
+
+  if (error) {
+    throw new Error(`Failed to fetch categories: ${error.message}`);
+  }
+
+  // 提取唯一的分類並排序
+  const categories = Array.from(new Set(parts?.map((part) => part.category).filter(Boolean) || []));
+  return categories.sort();
+}
+
+/**
  * 創建新的聲部
  * @param data - 聲部數據
  * @returns Promise<Part> - 返回創建的聲部
@@ -45,7 +66,8 @@ export async function createPart(data: CreatePartData): Promise<Part> {
     arrangement_id: data.arrangementId,
     start_page: data.startPage,
     end_page: data.endPage,
-    label: data.label
+    label: data.label,
+    category: data.category || null
   };
 
   const { data: part, error } = await supabase.from("parts").insert(partData).select().single();
