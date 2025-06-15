@@ -79,7 +79,7 @@ export default function LoginForm() {
         </Text>
       </Card.Header>
       <Card.Body>
-        <Button w="full" onClick={handleLoginWithGoogle} loading={isLoading} loadingText="登入中">
+        <Button w="full" onClick={handleLoginWithGoogle} loading={isLoading} loadingText="登入中" disabled>
           使用 Google 登入
         </Button>
         <VStack

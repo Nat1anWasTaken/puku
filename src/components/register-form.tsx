@@ -96,7 +96,7 @@ export default function RegisterForm() {
         </Text>
       </Card.Header>
       <Card.Body>
-        <Button w="full" onClick={handleRegisterWithGoogle} loading={isLoading} loadingText="創建帳戶中">
+        <Button w="full" onClick={handleRegisterWithGoogle} loading={isLoading} loadingText="創建帳戶中" disabled>
           使用 Google 註冊
         </Button>
         <VStack
