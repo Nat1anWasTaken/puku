@@ -1,7 +1,7 @@
 "use client";
 
 import { Part } from "@/lib/services/part-service";
-import { generatePageThumbnailsFromBuffer } from "@/lib/services/thumbnail-client";
+import { generatePageThumbnailsFromBufferGenerator } from "@/lib/services/thumbnail-client";
 import { Box, Card, Flex, Image, Skeleton, Text } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -20,22 +20,34 @@ const PART_COLORS = ["red.500", "teal.500", "blue.500", "green.500", "yellow.400
 
 export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, onBulkPageToggle, isLoading, pdfBuffer }: PartSelectorProps) {
   const [thumbnailUrls, setThumbnailUrls] = useState<Map<number, string>>(new Map());
-  const [isLoadingThumbnails, setIsLoadingThumbnails] = useState(false);
+  const [loadingThumbnails, setLoadingThumbnails] = useState<Set<number>>(new Set());
   const [lastClickedPage, setLastClickedPage] = useState<number | null>(null);
 
   // 生成所有頁面的縮圖
   const generateThumbnails = useCallback(async () => {
     if (!pdfBuffer || !totalPages) return;
 
-    setIsLoadingThumbnails(true);
+    const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+    // 設置所有頁面為載入狀態
+    setLoadingThumbnails(new Set(pageNumbers));
+
     try {
-      const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
-      const thumbnailMap = await generatePageThumbnailsFromBuffer(pdfBuffer, pageNumbers);
-      setThumbnailUrls(thumbnailMap);
+      // 使用生成器函數逐個生成縮圖
+      for await (const { pageNumber, thumbnailUrl } of generatePageThumbnailsFromBufferGenerator(pdfBuffer, pageNumbers)) {
+        // 更新縮圖 URL
+        setThumbnailUrls((prev) => new Map(prev).set(pageNumber, thumbnailUrl));
+        // 移除該頁面的載入狀態
+        setLoadingThumbnails((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(pageNumber);
+          return newSet;
+        });
+      }
     } catch (error) {
       console.error("生成縮圖失敗:", error);
-    } finally {
-      setIsLoadingThumbnails(false);
+      // 清除所有載入狀態
+      setLoadingThumbnails(new Set());
     }
   }, [pdfBuffer, totalPages]);
 
@@ -132,7 +144,7 @@ export function PartSelector({ totalPages, selectedPages, parts, onPageToggle, o
               >
                 {/* 縮圖顯示區域 */}
                 <Box borderRadius="sm" overflow="hidden" mb={1} aspectRatio={1 / 1.4142}>
-                  {isLoadingThumbnails ? (
+                  {loadingThumbnails.has(pageNum) ? (
                     <Skeleton w="full" h="full" />
                   ) : thumbnailUrls.has(pageNum) ? (
                     <Image src={thumbnailUrls.get(pageNum)} alt={`頁面 ${pageNum} 縮圖`} w="full" h="full" objectFit="cover" aspectRatio={1 / 1.4142} />

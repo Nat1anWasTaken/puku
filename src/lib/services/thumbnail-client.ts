@@ -142,6 +142,31 @@ export async function generatePageThumbnailsFromBuffer(pdfBuffer: ArrayBuffer, p
 }
 
 /**
+ * Generator function that yields thumbnails as they are generated
+ * @param pdfBuffer - The PDF file as ArrayBuffer
+ * @param pageNumbers - Array of page numbers to generate thumbnails for (1-based)
+ * @yields {pageNumber: number, thumbnailUrl: string} - Yields each thumbnail as it's generated
+ * @throws {Error} When thumbnail generation fails
+ * @description Generates thumbnails for multiple pages from a PDF buffer, yielding each as it's ready
+ */
+export async function* generatePageThumbnailsFromBufferGenerator(pdfBuffer: ArrayBuffer, pageNumbers: number[]): AsyncGenerator<{ pageNumber: number; thumbnailUrl: string }, void, unknown> {
+  // 確保只在客戶端運行
+  if (typeof window === "undefined") {
+    throw new Error("此功能只能在客戶端運行");
+  }
+
+  for (const pageNumber of pageNumbers) {
+    try {
+      const thumbnailDataUrl = await generatePageThumbnail(pdfBuffer, pageNumber);
+      yield { pageNumber, thumbnailUrl: thumbnailDataUrl };
+    } catch (error) {
+      console.error(`生成第 ${pageNumber} 頁縮圖失敗:`, error);
+      // 繼續處理其他頁面，不中斷整個流程
+    }
+  }
+}
+
+/**
  * Downloads a PDF file from Supabase storage and generates thumbnails for specified pages
  * @param arrangementId - The arrangement ID
  * @param filePath - The storage path of the PDF file
