@@ -43,7 +43,7 @@ export function CreateCategoryDialog({ isOpen, onClose, onCreateCategory }: Crea
 
             <Dialog.Body>
               <VStack gap={4} align="stretch">
-                <Input placeholder="輸入分類名稱（例如：弦樂、管樂、打擊樂等）" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} onKeyDown={handleKeyDown} autoFocus />
+                <Input placeholder="輸入分類名稱（例如：弦樂、管樂、打擊樂等）" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} onKeyDown={handleKeyDown} />
               </VStack>
             </Dialog.Body>
 
@@ -53,7 +53,7 @@ export function CreateCategoryDialog({ isOpen, onClose, onCreateCategory }: Crea
                   取消
                 </Button>
               </Dialog.ActionTrigger>
-              <Button colorScheme="blue" onClick={handleSubmit} disabled={!categoryName.trim()}>
+              <Button colorScheme="blue" onClick={handleSubmit} disabled={!categoryName.trim()} autoFocus>
                 創建分類
               </Button>
             </Dialog.Footer>
