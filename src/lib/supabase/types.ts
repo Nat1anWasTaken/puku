@@ -42,6 +42,7 @@ export type Database = {
       parts: {
         Row: {
           arrangement_id: string | null;
+          category: string | null;
           created_at: string;
           end_page: number | null;
           id: string;
@@ -51,6 +52,7 @@ export type Database = {
         };
         Insert: {
           arrangement_id?: string | null;
+          category?: string | null;
           created_at?: string;
           end_page?: number | null;
           id?: string;
@@ -60,6 +62,7 @@ export type Database = {
         };
         Update: {
           arrangement_id?: string | null;
+          category?: string | null;
           created_at?: string;
           end_page?: number | null;
           id?: string;
