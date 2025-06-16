@@ -1,16 +1,21 @@
 "use client";
 
+import { extractMusicSheetMetadata } from "@/ai/flows/extract-music-sheet-metadata";
 import { DeleteArrangementDialog } from "@/components/library/delete-arrangement-dialog";
 import { toaster } from "@/components/ui/toaster";
 import { useArrangementActions } from "@/hooks/use-arrangements";
 import { ArrangementWithDetails } from "@/lib/services/arrangement-service-server";
-import { Database } from "@/lib/supabase/types";
+import { createClient } from "@/lib/supabase/client";
+import { Constants, Database } from "@/lib/supabase/types";
 import { Alert, Button, Container, HStack, IconButton, Text, VStack } from "@chakra-ui/react";
-import { ArrowLeft, Save, Trash2, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Save, Sparkles, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ArrangementEditForm } from "./arrangement-edit-form";
 import { AutoSaveIndicator } from "./auto-save-indicator";
+
+type Part = Database["public"]["Tables"]["parts"]["Row"];
 
 interface ArrangementEditPageProps {
   arrangement: ArrangementWithDetails;
@@ -38,6 +43,11 @@ export function ArrangementEditPage({ arrangement }: ArrangementEditPageProps) {
 
 function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
   const router = useRouter();
+
+  const supabase = createClient();
+
+  const queryClient = useQueryClient();
+
   const { editArrangement, removeArrangement, isUpdating, isDeleting } = useArrangementActions();
 
   // 表單狀態
@@ -55,6 +65,9 @@ function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
 
   // 刪除對話框狀態
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // AI 生成狀態
+  const [isGeneratingWithAI, setIsGeneratingWithAI] = useState(false);
 
   // 檢查表單是否有效
   const isFormValid = title.trim().length >= 3 && composers.some((c) => c.trim().length > 0);
@@ -149,6 +162,86 @@ function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
     }
   };
 
+  // AI 生成元數據處理函數
+  const handleGenerateWithAI = async () => {
+    if (!arrangement.file_path) {
+      toaster.error({
+        title: "無法使用 AI 生成",
+        description: "此編曲沒有關聯的 PDF 檔案"
+      });
+      return;
+    }
+
+    setIsGeneratingWithAI(true);
+    try {
+      // 準備可用的合奏類型 - 轉換為人類可讀的格式
+      const availableEnsembleTypes = Constants.public.Enums.ensemble_type.map((type) => type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+
+      const { data, error } = await supabase.storage.from("arrangements").createSignedUrl(arrangement.file_path, 30 * 60);
+
+      if (error) {
+        throw error;
+      }
+
+      const signedUrl = data.signedUrl;
+
+      // 調用 AI 元數據提取
+      const metadata = await extractMusicSheetMetadata({
+        musicSheetDataUri: signedUrl, // 假設這是一個可訪問的 URL
+        existingArrangementTypes: availableEnsembleTypes,
+        additionalInstructions: "Please carefully analyze the Chinese traditional music elements and provide accurate metadata."
+      });
+
+      // 更新表單狀態
+      if (metadata.title) {
+        setTitle(metadata.title);
+      }
+      if (metadata.composers && metadata.composers.length > 0) {
+        setComposers(metadata.composers);
+      }
+      if (metadata.arrangement_type) {
+        // 將人類可讀格式轉回 snake_case
+        const matchedEnsembleType = Constants.public.Enums.ensemble_type.find((type) => type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) === metadata.arrangement_type);
+        if (matchedEnsembleType) {
+          setEnsembleType(matchedEnsembleType);
+        }
+      }
+
+      await supabase.from("parts").delete().eq("arrangement_id", arrangement.id);
+
+      const { error: partsError } = await supabase.from("parts").insert(
+        metadata.parts.map((part) => ({
+          arrangement_id: arrangement.id,
+          label: part.label,
+          start_page: part.start_page,
+          end_page: part.end_page,
+          category: part.category
+        }))
+      );
+
+      if (partsError) {
+        throw partsError;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["parts", arrangement.id] });
+
+      await handleSave();
+
+      toaster.success({
+        title: "AI 生成成功",
+        description: `已提取元數據：${metadata.title || "未知標題"}，${metadata.composers?.length || 0} 位作曲家，${metadata.parts?.length || 0} 個聲部`
+      });
+    } catch (error) {
+      console.error("AI 生成失敗:", error);
+      toaster.error({
+        title: "AI 生成失敗",
+        description: error instanceof Error ? error.message : "發生未知錯誤，請稍後再試"
+      });
+    } finally {
+      setIsGeneratingWithAI(false);
+    }
+  };
+
   return (
     <Container maxW="4xl" py={8}>
       <VStack gap={6} align="stretch">
@@ -170,6 +263,19 @@ function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
           </HStack>
 
           <HStack gap={2}>
+            {arrangement.file_path && (
+              <Button
+                variant="outline"
+                colorScheme="purple"
+                onClick={handleGenerateWithAI}
+                disabled={isUpdating || isDeleting || isGeneratingWithAI}
+                loading={isGeneratingWithAI}
+                loadingText="AI 生成中..."
+              >
+                <Sparkles size={16} />
+                AI 生成元數據
+              </Button>
+            )}
             <Button variant="outline" colorScheme="red" onClick={() => setIsDeleteDialogOpen(true)} disabled={isUpdating || isDeleting}>
               <Trash2 size={16} />
               刪除
