@@ -54,7 +54,7 @@ export async function getUserArrangementsServer(userId: string): Promise<Arrange
  * @throws {Error} 當更新預覽路徑失敗時
  */
 export async function updateArrangementPreviewPathWithServiceRole(arrangementId: string, previewPath: string): Promise<void> {
-  const supabase = createServiceRoleClient();
+  const supabase = await createServiceRoleClient();
 
   const { error } = await supabase.from("arrangements").update({ preview_path: previewPath }).eq("id", arrangementId);
 

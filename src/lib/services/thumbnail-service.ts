@@ -12,6 +12,10 @@ import { getPdfBufferByPageRange } from "./pdf-service";
  * @description Converts the first page of a PDF to a compressed JPEG image with 70% quality
  */
 export async function generatePreviewImage(pdfBuffer: Buffer): Promise<Buffer> {
+  if (!pdfBuffer || pdfBuffer.length === 0) {
+    throw new Error("PDF buffer is empty or invalid");
+  }
+
   const previewImageBuffer = await pdf(pdfBuffer, {
     compress: {
       type: "jpeg",
@@ -20,6 +24,11 @@ export async function generatePreviewImage(pdfBuffer: Buffer): Promise<Buffer> {
   });
 
   const buffer = await streamToBuffer(previewImageBuffer);
+
+  if (!buffer || buffer.length === 0) {
+    throw new Error("Generated thumbnail buffer is empty");
+  }
+
   return buffer;
 }
 
@@ -49,7 +58,7 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
  * @description Downloads PDF from storage, generates thumbnail from first page, and uploads to thumbnails bucket
  */
 export async function generateThumbnail(arrangementId: string, filePath: string): Promise<{ thumbnailBuffer: Buffer; previewPath: string }> {
-  const supabase = createServiceRoleClient();
+  const supabase = await createServiceRoleClient();
 
   // 從儲存空間下載 PDF 文件
   const { data: pdfData, error: downloadError } = await supabase.storage.from("arrangements").download(filePath);
@@ -61,6 +70,10 @@ export async function generateThumbnail(arrangementId: string, filePath: string)
   // 將 Blob 轉換為 Buffer
   const arrayBuffer = await pdfData.arrayBuffer();
   const pdfBuffer = Buffer.from(arrayBuffer);
+
+  if (!pdfBuffer || pdfBuffer.length === 0) {
+    throw new Error("PDF buffer is empty after conversion");
+  }
 
   // 生成縮圖
   const thumbnailBuffer = await generatePreviewImage(pdfBuffer);
