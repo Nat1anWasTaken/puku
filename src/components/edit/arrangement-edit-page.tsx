@@ -28,7 +28,7 @@ export function ArrangementEditPage({ arrangement }: ArrangementEditPageProps) {
 
   if (!isClient) {
     return (
-      <Container maxW="4xl" py={8}>
+      <Container maxW="7xl" py={8}>
         <VStack gap={6} align="stretch">
           <Text>載入中...</Text>
         </VStack>
@@ -239,7 +239,7 @@ function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
   };
 
   return (
-    <Container maxW="4xl" py={8}>
+    <Container maxW="7xl" py={8}>
       <VStack gap={6} align="stretch">
         {/* 頁面標題和導航 */}
         <HStack justify="space-between" align="center">

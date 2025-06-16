@@ -1,10 +1,12 @@
 import LoginForm from "@/components/login-form";
-import { Flex } from "@chakra-ui/react";
+import { Container, Flex } from "@chakra-ui/react";
 
 export default function LoginPage() {
   return (
-    <Flex width="full" height="full" justifyContent="center" alignItems="center">
-      <LoginForm />
-    </Flex>
+    <Container maxW="7xl" py={8}>
+      <Flex justifyContent="center">
+        <LoginForm />
+      </Flex>
+    </Container>
   );
 }

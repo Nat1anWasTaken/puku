@@ -1,12 +1,14 @@
 "use client";
 
 import RegisterForm from "@/components/register-form";
-import { Flex } from "@chakra-ui/react";
+import { Container, Flex } from "@chakra-ui/react";
 
 export default function RegisterPage() {
   return (
-    <Flex w="full" h="full" justify="center" align="center">
-      <RegisterForm />
-    </Flex>
+    <Container maxW="7xl" py={8}>
+      <Flex justify="center">
+        <RegisterForm />
+      </Flex>
+    </Container>
   );
 }

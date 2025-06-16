@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { Flex, Heading, Text, VStack } from "@chakra-ui/react";
+import { Container, Flex, Heading, Text, VStack } from "@chakra-ui/react";
 import { ArrangementCard } from "./arrangement-card";
 
 export async function HomePage() {
@@ -24,10 +24,12 @@ export async function HomePage() {
   const { data: arrangements } = await query;
 
   return (
-    <VStack p={8} gap={4} align="start" w="full">
-      <Heading>Puku</Heading>
-      <Text>Puku is a platform for sharing and collaborating on musical arrangements.</Text>
-      <Flex>{arrangements?.map((arrangement) => <ArrangementCard key={arrangement.id} arrangement={arrangement} />)}</Flex>
-    </VStack>
+    <Container maxW="7xl" py={8}>
+      <VStack gap={4} align="start" w="full">
+        <Heading>Puku</Heading>
+        <Text>Puku is a platform for sharing and collaborating on musical arrangements.</Text>
+        <Flex>{arrangements?.map((arrangement) => <ArrangementCard key={arrangement.id} arrangement={arrangement} />)}</Flex>
+      </VStack>
+    </Container>
   );
 }
