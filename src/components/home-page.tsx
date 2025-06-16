@@ -28,7 +28,7 @@ export async function HomePage() {
       <VStack gap={4} align="start" w="full">
         <Heading>Puku</Heading>
         <Text>Puku is a platform for sharing and collaborating on musical arrangements.</Text>
-        <Flex>{arrangements?.map((arrangement) => <ArrangementCard key={arrangement.id} arrangement={arrangement} />)}</Flex>
+        <Flex gap={2}>{arrangements?.map((arrangement) => <ArrangementCard key={arrangement.id} arrangement={arrangement} />)}</Flex>
       </VStack>
     </Container>
   );
