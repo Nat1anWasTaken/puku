@@ -6,6 +6,7 @@ import { VStack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { PartCategorySection } from "./part-category-section";
+import { PartCategorySectionSkeleton } from "./part-category-section-skeleton";
 import { PartFilters } from "./part-filters";
 
 interface ArrangementPartListingProps {
@@ -96,16 +97,27 @@ export function ArrangementPartListing({ arrangementId }: ArrangementPartListing
       />
 
       {/* 按分類顯示聲部 */}
-      {availableCategories.map((category) => {
-        const categoryParts = partsByCategory[category] || [];
-        // 只顯示有聲部的分類
-        if (categoryParts.length === 0) return null;
+      {arrangement ? (
+        <>
+          {availableCategories.map((category) => {
+            const categoryParts = partsByCategory[category] || [];
+            // 只顯示有聲部的分類
+            if (categoryParts.length === 0) return null;
 
-        return <PartCategorySection key={category} title={category} parts={categoryParts} isLoading={isLoading} arrangement={arrangement} />;
-      })}
+            return <PartCategorySection key={category} title={category} parts={categoryParts} isLoading={isLoading} arrangement={arrangement} />;
+          })}
 
-      {/* 未分類聲部區段 - 只在有未分類聲部時顯示 */}
-      {(partsByCategory["未分類"]?.length > 0 || isLoading) && <PartCategorySection title="未分類" parts={partsByCategory["未分類"] || []} isLoading={isLoading} arrangement={arrangement} />}
+          {/* 未分類聲部區段 - 只在有未分類聲部時顯示 */}
+          {(partsByCategory["未分類"]?.length > 0 || isLoading) && <PartCategorySection title="未分類" parts={partsByCategory["未分類"] || []} isLoading={isLoading} arrangement={arrangement} />}
+        </>
+      ) : (
+        <>
+          {availableCategories.map((category) => (
+            <PartCategorySectionSkeleton key={category} />
+          ))}
+          <PartCategorySectionSkeleton />
+        </>
+      )}
     </VStack>
   );
 }

@@ -223,8 +223,6 @@ function ArrangementEditPageClient({ arrangement }: ArrangementEditPageProps) {
 
       queryClient.invalidateQueries({ queryKey: ["parts", arrangement.id] });
 
-      await handleSave();
-
       toaster.success({
         title: "AI 生成成功",
         description: `已提取元數據：${metadata.title || "未知標題"}，${metadata.composers?.length || 0} 位作曲家，${metadata.parts?.length || 0} 個聲部`
