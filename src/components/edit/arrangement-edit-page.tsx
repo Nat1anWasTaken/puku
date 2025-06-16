@@ -15,8 +15,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrangementEditForm } from "./arrangement-edit-form";
 import { AutoSaveIndicator } from "./auto-save-indicator";
 
-type Part = Database["public"]["Tables"]["parts"]["Row"];
-
 interface ArrangementEditPageProps {
   arrangement: ArrangementWithDetails;
 }

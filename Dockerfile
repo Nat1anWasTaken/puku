@@ -1,7 +1,22 @@
 # syntax=docker/dockerfile:1
 
 # Base image with Bun
-FROM oven/bun:1.1.13-alpine AS base
+FROM oven/bun:1-alpine AS base
+
+# Install system dependencies for PDF processing
+RUN apk add --no-cache \
+    imagemagick \
+    ghostscript \
+    fontconfig \
+    ttf-dejavu \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    pixman-dev
 
 WORKDIR /app
 
@@ -9,7 +24,8 @@ WORKDIR /app
 FROM base AS deps
 
 COPY bun.lockb package.json ./
-RUN bun install --frozen-lockfile
+COPY scripts ./scripts
+RUN bun install
 
 # Rebuild the source code
 FROM base AS builder
