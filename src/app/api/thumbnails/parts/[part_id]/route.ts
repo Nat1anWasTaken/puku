@@ -1,5 +1,4 @@
 import { updatePartPreviewPath } from "@/lib/services/part-service-server";
-import { downloadPDFBufferServer } from "@/lib/services/pdf-service";
 import { generateAndUploadPartThumbnail } from "@/lib/services/thumbnail-service";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -71,11 +70,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // 生成新的縮圖
     try {
-      // 從伺服器端下載 PDF buffer
-      const pdfBuffer = await downloadPDFBufferServer(arrangement.file_path);
-
       // 生成聲部縮圖（part_id 現為 uuid）
-      const { previewPath: newPreviewPath } = await generateAndUploadPartThumbnail(part_id, pdfBuffer, part.start_page);
+      const { previewPath: newPreviewPath } = await generateAndUploadPartThumbnail(part_id, arrangement.file_path, part.start_page);
 
       await updatePartPreviewPath(part_id, newPreviewPath);
 

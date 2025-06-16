@@ -1,5 +1,5 @@
 import { updateArrangementPreviewPathWithServiceRole } from "@/lib/services/arrangement-service-server";
-import { generateThumbnail } from "@/lib/services/thumbnail-service";
+import { generateAndUploadArrangementThumbnail } from "@/lib/services/thumbnail-service";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // 如果沒有縮圖但有檔案，生成縮圖
     if (arrangement.file_path && !arrangement.preview_path) {
       try {
-        const { previewPath } = await generateThumbnail(arrangement_id, arrangement.file_path);
+        const { previewPath } = await generateAndUploadArrangementThumbnail(arrangement_id, arrangement.file_path);
 
         // 更新編曲記錄
         await updateArrangementPreviewPathWithServiceRole(arrangement_id, previewPath);

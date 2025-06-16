@@ -1,7 +1,7 @@
 import { toaster } from "@/components/ui/toaster";
 import { createArrangement, CreateArrangementData, updateArrangementFilePath, updateArrangementPreviewPath } from "@/lib/services/arrangement-service";
 import { generateArrangementFilePath, uploadFileToStorage } from "@/lib/services/storage-service";
-import { generateThumbnail } from "@/lib/services/thumbnail-service";
+import { generateAndUploadArrangementThumbnail } from "@/lib/services/thumbnail-service";
 import { mergePDFFiles } from "./pdf-client";
 
 const BUCKET_NAME = "arrangements";
@@ -78,7 +78,7 @@ export async function uploadArrangement(data: UploadArrangementData, onProgress?
 
     let previewPath: string | undefined;
     try {
-      const thumbnailResult = await generateThumbnail(arrangementId, filePath);
+      const thumbnailResult = await generateAndUploadArrangementThumbnail(arrangementId, filePath);
       previewPath = thumbnailResult.previewPath;
 
       await updateArrangementPreviewPath(arrangementId, previewPath);
