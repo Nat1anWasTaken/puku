@@ -1,10 +1,10 @@
 "use client";
 
-import { Container, VStack, Center, Text } from "@chakra-ui/react";
-import { LibraryHeader, LibraryStats, LibrarySkeleton, ArrangementGrid, EmptyLibrary } from "@/components/library";
-import { useUser } from "@/hooks/use-user";
+import { EmptyLibrary, LibraryHeader, LibrarySkeleton, LibraryStats } from "@/components/library";
+import { LibraryArrangementGrid } from "@/components/library/library-arrangement-grid";
 import { useArrangements } from "@/hooks/use-arrangements";
-import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/hooks/use-user";
+import { Center, Container, Text, VStack } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 
 export default function LibraryPage() {
@@ -12,27 +12,9 @@ export default function LibraryPage() {
   const { arrangements, isLoading: arrangementsLoading } = useArrangements(user?.id || "");
 
   const router = useRouter();
-  const supabase = createClient();
 
   const handleUpload = () => {
     router.push("/upload");
-  };
-
-  const handleView = async (id: string) => {
-    const arrangement = arrangements.find((arr) => arr.id === id);
-    if (!arrangement?.file_path) {
-      console.error("檔案路徑不存在");
-      return;
-    }
-
-    try {
-      const { data } = await supabase.storage.from("arrangements").createSignedUrl(arrangement.file_path, 60);
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, "_blank");
-      }
-    } catch (error) {
-      console.error("開啟檔案失敗:", error);
-    }
   };
 
   // 如果用戶未登入
@@ -64,7 +46,7 @@ export default function LibraryPage() {
         <LibraryStats arrangements={arrangements} />
 
         {/* 編曲列表 */}
-        {isLoading ? <LibrarySkeleton /> : arrangements.length > 0 ? <ArrangementGrid arrangements={arrangements} onView={handleView} /> : <EmptyLibrary onUpload={handleUpload} />}
+        {isLoading ? <LibrarySkeleton /> : arrangements.length > 0 ? <LibraryArrangementGrid arrangements={arrangements} /> : <EmptyLibrary onUpload={handleUpload} />}
       </VStack>
     </Container>
   );

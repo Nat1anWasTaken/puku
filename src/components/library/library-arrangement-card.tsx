@@ -18,10 +18,9 @@ interface Arrangement {
 
 interface LibraryArrangementCardProps {
   arrangement: Arrangement;
-  onView: (id: string) => void;
 }
 
-export function LibraryArrangementCard({ arrangement, onView }: LibraryArrangementCardProps) {
+export function LibraryArrangementCard({ arrangement }: LibraryArrangementCardProps) {
   return (
     <Card.Root overflow="hidden" h="full">
       <Box position="relative">
@@ -34,9 +33,11 @@ export function LibraryArrangementCard({ arrangement, onView }: LibraryArrangeme
 
         {/* 操作按鈕 */}
         <HStack position="absolute" top="2" right="2" gap={1}>
-          <IconButton size="xs" variant="ghost" onClick={() => onView(arrangement.id)} aria-label="查看編曲">
-            <Eye size={12} />
-          </IconButton>
+          <Link href={`/arrangements/${arrangement.id}`}>
+            <IconButton size="xs" variant="ghost" aria-label="查看編曲">
+              <Eye size={12} />
+            </IconButton>
+          </Link>
           <Link href={`/edit/${arrangement.id}`}>
             <IconButton size="xs" variant="ghost" aria-label="編輯編曲">
               <Edit size={12} />
