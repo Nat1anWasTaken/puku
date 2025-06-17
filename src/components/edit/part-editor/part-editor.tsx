@@ -1,7 +1,17 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { createPart, CreatePartData, deletePart, getAvailableCategoriesByArrangementId, getPartsByArrangementId, getPDFPageCount, Part, updatePartCategory } from "@/lib/services/part-service";
+import {
+  createPart,
+  CreatePartData,
+  deletePart,
+  getAvailableCategoriesByArrangementId,
+  getPartsByArrangementId,
+  getPDFPageCount,
+  Part,
+  updatePartCategory,
+  updatePartLabel
+} from "@/lib/services/part-service";
 import { downloadPDFBuffer } from "@/lib/services/thumbnail-client";
 import { Alert, Box, CloseButton, Drawer, Flex, HStack, Portal, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -138,6 +148,24 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     }
   });
 
+  // 更新聲部名稱 mutation
+  const updateNameMutation = useMutation({
+    mutationFn: ({ partId, name }: { partId: string; name: string }) => updatePartLabel(partId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["parts", arrangementId] });
+      toaster.success({
+        title: "聲部名稱更新成功",
+        description: "聲部名稱已成功更新"
+      });
+    },
+    onError: (error) => {
+      toaster.error({
+        title: "更新聲部名稱失敗",
+        description: error instanceof Error ? error.message : "未知錯誤"
+      });
+    }
+  });
+
   // 處理頁面選擇
   const handlePageToggle = (pageNumber: number) => {
     const newSelected = new Set(selectedPages);
@@ -212,6 +240,11 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
   // 處理更新聲部分類
   const handleCategoryChange = (partId: string, category: string | null) => {
     updateCategoryMutation.mutate({ partId, category });
+  };
+
+  // 處理更新聲部名稱
+  const handleNameChange = (partId: string, newName: string) => {
+    updateNameMutation.mutate({ partId, name: newName });
   };
 
   // 重置狀態當抽屜關閉時
@@ -300,6 +333,7 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
                         onDeletePart={handleDeletePart}
                         onCategoryChange={handleCategoryChange}
                         onCreateCategory={handleCreateCategory}
+                        onNameChange={handleNameChange}
                         isLoading={isLoadingParts}
                         h="full"
                       />

@@ -119,6 +119,22 @@ export async function updatePartCategory(partId: string, category: string | null
 }
 
 /**
+ * 更新聲部標籤
+ * @param partId - 聲部ID
+ * @param label - 新的標籤名稱
+ * @throws {Error} 當更新標籤失敗時
+ */
+export async function updatePartLabel(partId: string, label: string): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("parts").update({ label }).eq("id", partId);
+
+  if (error) {
+    throw new Error(`Failed to update part label: ${error.message}`);
+  }
+}
+
+/**
  * 刪除聲部
  * @param partId - 聲部ID
  * @throws {Error} 當刪除聲部失敗時

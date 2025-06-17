@@ -15,10 +15,11 @@ interface PartListingProps extends BoxProps {
   onDeletePart: (id: string) => void;
   onCategoryChange: (partId: string, category: string | null) => void;
   onCreateCategory: (category: string) => void;
+  onNameChange: (partId: string, newName: string) => void;
   isLoading?: boolean;
 }
 
-export function PartListing({ parts, availableCategories, onDeletePart, onCategoryChange, onCreateCategory, isLoading, ...boxProps }: PartListingProps) {
+export function PartListing({ parts, availableCategories, onDeletePart, onCategoryChange, onCreateCategory, onNameChange, isLoading, ...boxProps }: PartListingProps) {
   return (
     <Card.Root {...boxProps}>
       <Card.Header>
@@ -45,6 +46,7 @@ export function PartListing({ parts, availableCategories, onDeletePart, onCatego
                 onDelete={onDeletePart}
                 onCategoryChange={onCategoryChange}
                 onCreateCategory={onCreateCategory}
+                onNameChange={onNameChange}
               />
             ))
           ) : (

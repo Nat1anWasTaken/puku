@@ -3,11 +3,12 @@
 import { getThumbnailForPart } from "@/lib/services/thumbnail-client";
 import { Box, HStack, IconButton, Image, Skeleton, Text, VStack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { CategorySelector } from "./category-selector";
 import { CreateCategoryDialog } from "./create-category-dialog";
 import { DeletePartDialog } from "./delete-part-dialog";
+import { EditPartNameDialog } from "./edit-part-name-dialog";
 
 interface PartItemProps {
   id: string;
@@ -20,11 +21,13 @@ interface PartItemProps {
   onDelete: (id: string) => void;
   onCategoryChange: (partId: string, category: string | null) => void;
   onCreateCategory: (category: string) => void;
+  onNameChange: (partId: string, newName: string) => void;
 }
 
-export function PartItem({ id, name, startPage, endPage, color, category, availableCategories, onDelete, onCategoryChange, onCreateCategory }: PartItemProps) {
+export function PartItem({ id, name, startPage, endPage, color, category, availableCategories, onDelete, onCategoryChange, onCreateCategory, onNameChange }: PartItemProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
+  const [isEditNameDialogOpen, setIsEditNameDialogOpen] = useState(false);
 
   // 使用 React Query 獲取聲部縮圖
   const { data: thumbnailResult, isLoading: isLoadingThumbnail } = useQuery({
@@ -58,6 +61,15 @@ export function PartItem({ id, name, startPage, endPage, color, category, availa
     setIsCreateCategoryDialogOpen(false);
   };
 
+  const handleEditName = () => {
+    setIsEditNameDialogOpen(true);
+  };
+
+  const handleNameChange = (newName: string) => {
+    onNameChange(id, newName);
+    setIsEditNameDialogOpen(false);
+  };
+
   return (
     <>
       <VStack gap={3} p={3} borderRadius="md" border="1px solid" borderColor="border.emphasized">
@@ -66,7 +78,12 @@ export function PartItem({ id, name, startPage, endPage, color, category, availa
           <HStack gap={3}>
             <Box w={4} h={4} bg={color} borderRadius="full" />
             <VStack align="start" gap={0}>
-              <Text fontWeight="medium">{name}</Text>
+              <HStack gap={2} align="center">
+                <Text fontWeight="medium">{name}</Text>
+                <IconButton size="xs" variant="ghost" onClick={handleEditName} aria-label={`編輯 ${name} 名稱`}>
+                  <Edit2 size={12} />
+                </IconButton>
+              </HStack>
               <Text fontSize="sm" color="fg.muted">
                 頁面 {startPage} - {endPage}
               </Text>
@@ -106,6 +123,7 @@ export function PartItem({ id, name, startPage, endPage, color, category, availa
 
       <DeletePartDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} onConfirm={handleConfirmDelete} partName={name} />
       <CreateCategoryDialog isOpen={isCreateCategoryDialogOpen} onClose={() => setIsCreateCategoryDialogOpen(false)} onCreateCategory={handleCreateCategory} />
+      <EditPartNameDialog isOpen={isEditNameDialogOpen} onClose={() => setIsEditNameDialogOpen(false)} onEditPartName={handleNameChange} currentName={name} />
     </>
   );
 }
