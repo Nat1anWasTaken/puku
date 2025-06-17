@@ -13,6 +13,7 @@ export type CreatePartData = {
 export type UpdatePartData = {
   startPage?: number;
   endPage?: number;
+  category?: string;
 };
 
 /**
@@ -92,11 +93,28 @@ export async function updatePart(partId: string, data: UpdatePartData): Promise<
 
   if (data.startPage !== undefined) updateData.start_page = data.startPage;
   if (data.endPage !== undefined) updateData.end_page = data.endPage;
+  if (data.category !== undefined) updateData.category = data.category || null;
 
   const { error } = await supabase.from("parts").update(updateData).eq("id", partId);
 
   if (error) {
     throw new Error(`Failed to update part: ${error.message}`);
+  }
+}
+
+/**
+ * 更新聲部分類
+ * @param partId - 聲部ID
+ * @param category - 新的分類（可為空字符串或null）
+ * @throws {Error} 當更新分類失敗時
+ */
+export async function updatePartCategory(partId: string, category: string | null): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("parts").update({ category }).eq("id", partId);
+
+  if (error) {
+    throw new Error(`Failed to update part category: ${error.message}`);
   }
 }
 

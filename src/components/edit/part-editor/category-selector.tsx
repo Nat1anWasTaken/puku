@@ -1,17 +1,17 @@
 "use client";
 
-import { createListCollection, HStack, Select, Text } from "@chakra-ui/react";
+import { createListCollection, FlexProps, HStack, Select, Text } from "@chakra-ui/react";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 
-interface CategorySelectorProps {
+interface CategorySelectorProps extends Omit<FlexProps, "onChange" | "direction"> {
   value: string;
   onChange: (value: string) => void;
   availableCategories: string[];
   onCreateNew: () => void;
 }
 
-export function CategorySelector({ value, onChange, availableCategories, onCreateNew }: CategorySelectorProps) {
+export function CategorySelector({ value, onChange, availableCategories, onCreateNew, ...flexProps }: CategorySelectorProps) {
   const categoryCollection = useMemo(() => {
     const items = [
       ...availableCategories.map((category) => ({
@@ -39,7 +39,7 @@ export function CategorySelector({ value, onChange, availableCategories, onCreat
   };
 
   return (
-    <HStack gap={2}>
+    <HStack gap={2} {...flexProps}>
       <Select.Root collection={categoryCollection} value={value ? [value] : []} onValueChange={handleValueChange} size="md" flex="1">
         <Select.HiddenSelect />
         <Select.Control>

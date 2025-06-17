@@ -1,7 +1,7 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { createPart, CreatePartData, deletePart, getAvailableCategoriesByArrangementId, getPartsByArrangementId, getPDFPageCount, Part } from "@/lib/services/part-service";
+import { createPart, CreatePartData, deletePart, getAvailableCategoriesByArrangementId, getPartsByArrangementId, getPDFPageCount, Part, updatePartCategory } from "@/lib/services/part-service";
 import { downloadPDFBuffer } from "@/lib/services/thumbnail-client";
 import { Alert, Box, CloseButton, Drawer, Flex, HStack, Portal, Text, VStack } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -119,6 +119,25 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
     }
   });
 
+  // 更新聲部分類 mutation
+  const updateCategoryMutation = useMutation({
+    mutationFn: ({ partId, category }: { partId: string; category: string | null }) => updatePartCategory(partId, category),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["parts", arrangementId] });
+      queryClient.invalidateQueries({ queryKey: ["categories", arrangementId] });
+      toaster.success({
+        title: "分類更新成功",
+        description: "聲部分類已成功更新"
+      });
+    },
+    onError: (error) => {
+      toaster.error({
+        title: "更新分類失敗",
+        description: error instanceof Error ? error.message : "未知錯誤"
+      });
+    }
+  });
+
   // 處理頁面選擇
   const handlePageToggle = (pageNumber: number) => {
     const newSelected = new Set(selectedPages);
@@ -188,6 +207,11 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
   // 處理刪除聲部
   const handleDeletePart = (partId: string) => {
     deletePartMutation.mutate(partId);
+  };
+
+  // 處理更新聲部分類
+  const handleCategoryChange = (partId: string, category: string | null) => {
+    updateCategoryMutation.mutate({ partId, category });
   };
 
   // 重置狀態當抽屜關閉時
@@ -270,7 +294,15 @@ export function PartEditor({ arrangementId, filePath, isOpen, onClose }: PartEdi
                   <VStack gap={6} align="stretch" h="full">
                     {/* 聲部列表 */}
                     <Box flex={{ base: "unset", lg: 1 }} overflow={{ base: "unset", lg: "auto" }}>
-                      <PartListing parts={partsWithColor} onDeletePart={handleDeletePart} isLoading={isLoadingParts} h="full" />
+                      <PartListing
+                        parts={partsWithColor}
+                        availableCategories={allAvailableCategories}
+                        onDeletePart={handleDeletePart}
+                        onCategoryChange={handleCategoryChange}
+                        onCreateCategory={handleCreateCategory}
+                        isLoading={isLoadingParts}
+                        h="full"
+                      />
                     </Box>
 
                     {/* 創建新聲部 */}
