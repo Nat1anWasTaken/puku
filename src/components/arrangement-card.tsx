@@ -2,17 +2,17 @@
 
 import { Tables } from "@/lib/supabase/types";
 import { snakeCaseToTitleCase } from "@/lib/utils";
-import { Badge, Box, Card, Heading, HStack, LinkOverlay, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, Card, CardRootProps, Heading, HStack, LinkOverlay, Text, VStack } from "@chakra-ui/react";
 import { ArrangementThumbnailImage } from "./library/arrangement-thumbnail-image";
 
 type Arrangement = Tables<"arrangements">;
 
-interface ArrangementCardProps {
+interface ArrangementCardProps extends Omit<CardRootProps, "onClick"> {
   arrangement: Arrangement;
   onClick?: (arrangement: Arrangement) => void;
 }
 
-export function ArrangementCard({ arrangement, onClick }: ArrangementCardProps) {
+export function ArrangementCard({ arrangement, onClick, ...cardRootProps }: ArrangementCardProps) {
   const handleClick = () => {
     if (onClick) {
       onClick(arrangement);
@@ -28,13 +28,16 @@ export function ArrangementCard({ arrangement, onClick }: ArrangementCardProps) 
         bg: "bg.emphasized"
       }}
       transition="all 0.2s"
+      w="full"
+      maxW={{ base: "full", md: "2xs" }}
+      {...cardRootProps}
     >
       <LinkOverlay href={`/arrangements/${arrangement.id}`}>
         <Card.Body>
           <VStack align="stretch" gap={3}>
             {/* 縮圖區域 - 1:1.4142 比例 */}
             <Box w="full" aspectRatio={1 / 1.4142} overflow="hidden" borderRadius="md">
-              <ArrangementThumbnailImage title={arrangement.title} filePath={arrangement.file_path} arrangementId={arrangement.id} w="250px" aspectRatio={1 / 1.4142} />
+              <ArrangementThumbnailImage title={arrangement.title} filePath={arrangement.file_path} arrangementId={arrangement.id} aspectRatio={1 / 1.4142} />
             </Box>
 
             {/* 編曲資訊 */}
