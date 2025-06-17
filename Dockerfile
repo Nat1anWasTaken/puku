@@ -5,18 +5,18 @@ FROM oven/bun:1-alpine AS base
 
 # Install system dependencies for PDF processing
 RUN apk add --no-cache \
-    imagemagick \
-    ghostscript \
-    fontconfig \
-    ttf-dejavu \
-    python3 \
-    make \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev \
-    pixman-dev
+  imagemagick \
+  ghostscript \
+  fontconfig \
+  ttf-dejavu \
+  python3 \
+  make \
+  g++ \
+  cairo-dev \
+  jpeg-dev \
+  pango-dev \
+  giflib-dev \
+  pixman-dev
 
 WORKDIR /app
 
@@ -24,7 +24,6 @@ WORKDIR /app
 FROM base AS deps
 
 COPY bun.lockb package.json ./
-COPY scripts ./scripts
 RUN bun install
 
 # Rebuild the source code
